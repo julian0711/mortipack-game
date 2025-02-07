@@ -1,1145 +1,1162 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8">
-  <title>MORTIPACK ～袋に注意！～ (Mobile Version)</title>
-  <!-- ビューポート設定 -->
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    /* リセット */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      background: #000;
-      color: #fff;
-      font-family: sans-serif;
-      overflow: hidden;
-    }
-    /* ゲーム全体のコンテナ */
-      #gameContainer {
-         position: relative;
-         display: flex;
-         flex-direction: column;
-         align-items: center;
-      }
-    /* ゲーム画面：横幅に合わせた正方形 */
-    canvas {
-      background: #222;
-      width: 100vw;   /* 画面横幅に合わせる */
-      height: 100vw;  /* 正方形にする */
-      display: block;
-    }
-    /* インベントリ（カギ＆アイテム）の表示エリア（canvas直下） */
-    #inventoryPanel {
-      width: 100vw;
-      background: #333;
-      display: flex;
-      justify-content: space-around;
-      padding: 10px;
-    }
-    #inventoryPanel span {
-      padding: 4px 8px;
-      background: rgba(255,255,255,0.1);
-      margin: 2px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    /* 操作用ボタンエリア */
-    #controls {
-      width: 100vw;
-      padding: 10px;
-      background: #222;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    #controls .arrow-row {
-      display: flex;
-      justify-content: center;
-      margin: 5px 0;
-    }
-    #controls button {
-      width: 60px;
-      height: 60px;
-      margin: 5px;
-      font-size: 24px;
-      border: none;
-      border-radius: 8px;
-      background: #555;
-      color: #fff;
-    }
-    /* オーバーレイ（タイトル画面やロゴ画面用） */
-      #overlay {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100vw;
-          height: 100vh;
-          background: rgba(0, 0, 0, 0.85);
-          display: none;
-          align-items: center;
-          justify-content: flex-start;
-          z-index: 10;
-      }
-    #overlay h1 {
-      margin-bottom: 20px;
-      font-size: 48px;
-    }
-    #overlay button {
-      margin: 10px;
-      padding: 10px 20px;
-      font-size: 20px;
-    }
-  </style>
+    <meta charset="utf-8">
+    <title>MORTIPACK ～袋に注意！～ (Mobile Version)</title>
+    <!-- ビューポート設定 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        /* リセット */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            color: #fff;
+            font-family: sans-serif;
+            overflow: hidden;
+        }
+        /* ゲーム全体のコンテナ */
+        #gameContainer {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        /* ゲーム画面：横幅に合わせた正方形 */
+        canvas {
+            background: #222;
+            width: 100vw; /* 画面横幅に合わせる */
+            height: 100vw; /* 正方形にする */
+            display: block;
+        }
+        /* インベントリ（カギ＆アイテム）の表示エリア（canvas直下） */
+        #inventoryPanel {
+            width: 100vw;
+            background: #333;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+        }
+
+            #inventoryPanel span {
+                padding: 4px 8px;
+                background: rgba(255,255,255,0.1);
+                margin: 2px;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+        /* 操作用ボタンエリア */
+        #controls {
+            width: 100vw;
+            padding: 10px;
+            background: #222;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+            #controls .arrow-row {
+                display: flex;
+                justify-content: center;
+                margin: 5px 0;
+            }
+
+            #controls button {
+                width: 60px;
+                height: 60px;
+                margin: 5px;
+                font-size: 24px;
+                border: none;
+                border-radius: 8px;
+                background: #555;
+                color: #fff;
+            }
+        /* オーバーレイ（タイトル画面やロゴ画面用） */
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            flex-direction: column; /* 追加：子要素を縦並びに */
+            align-items: center;
+            justify-content: center; /* 変更：中央揃え */
+            z-index: 10;
+        }
+
+            #overlay h1 {
+                margin-bottom: 20px;
+                font-size: 48px;
+            }
+
+            #overlay button {
+                margin: 10px;
+                padding: 10px 20px;
+                font-size: 20px;
+            }
+    </style>
 </head>
 <body>
-  <!-- ゲーム画面全体のコンテナ -->
-  <div id="gameContainer">
-    <!-- ゲームキャンバス -->
-    <canvas id="gameCanvas" width="320" height="320"></canvas>
-    <!-- インベントリ表示（カギ・アイテム） -->
-    <div id="inventoryPanel">
-      <div id="keyInventory"></div>
-      <div id="itemInventory"></div>
-    </div>
-    <!-- 操作用のカーソルボタン -->
-<div id="controls">
-  <div class="arrow-row">
-    <button class="arrow" data-direction="ArrowUp">↑</button>
-  </div>
-  <div class="arrow-row">
-    <button class="arrow" data-direction="ArrowLeft">←</button>
-    <button class="arrow" data-direction="ArrowDown">↓</button>
-    <button class="arrow" data-direction="ArrowRight">→</button>
-  </div>
-  <!-- 調べるボタンを追加 -->
-  <div class="action-row">
-      <button id="investigateButton">Srch</button>
-  </div>
-</div>
+    <!-- ゲーム画面全体のコンテナ -->
+    <div id="gameContainer">
+        <!-- ゲームキャンバス -->
+        <canvas id="gameCanvas" width="320" height="320"></canvas>
+        <!-- インベントリ表示（カギ・アイテム） -->
+        <div id="inventoryPanel">
+            <div id="keyInventory"></div>
+            <div id="itemInventory"></div>
+        </div>
+        <!-- 操作用のカーソルボタン -->
+        <div id="controls">
+            <div class="arrow-row">
+                <button class="arrow" data-direction="ArrowUp">↑</button>
+            </div>
+            <div class="arrow-row">
+                <button class="arrow" data-direction="ArrowLeft">←</button>
+                <button class="arrow" data-direction="ArrowDown">↓</button>
+                <button class="arrow" data-direction="ArrowRight">→</button>
+            </div>
+            <!-- 調べるボタンを追加 -->
+            <div class="action-row">
+                <button id="investigateButton">Srch</button>
+            </div>
+        </div>
 
-  <!-- オーバーレイ（タイトル／ロゴ画面用） -->
-  <div id="overlay"></div>
-  
-  <script>
-    /***** 以下、もともとのゲームロジック（ほぼそのまま） *****/
-    
-    // 乱数生成・配列シャッフルなどのユーティリティ
-    function randomInt(min, max) {
-      return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-    function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-    }
-    
-    // 定数など
-    const TILE_SIZE = 24;
-    const animationDuration = 200;
-    const jumpHeight = 8;
-    const deathDuration = 1000;
-    const currentGridWidth = 25;
-    const currentGridHeight = 25;
-    
-    let score = 0;
-    let turnCount = 0;
-    let moveCount = 0;
-    let ghostTimeTurnsRemaining = 0;
-    let goalMultiplierAnimation = null;
-    let currentFloor = 1;
-    
-    let canvas, ctx;
-    let dungeon;
-    let player;
-    let enemies = [];
-    let gameState = "title";
-    let message = "";
-    let lastFrameTime = 0;
-    
-    // サウンド読み込み
-    let titleBGM = new Audio("titleBGM.mp3");
-    titleBGM.loop = true;
-    let stageBGM = new Audio("stageBGM.mp3");
-    stageBGM.loop = true;
-    let itemGetSE = new Audio("itemGetSE.mp3");
-    
-    // 画像読み込み
-    let playerImage = new Image();
-    playerImage.src = "player.png";
-    let enemyImage = new Image();
-    enemyImage.src = "mortipack.png";
-    let shelfImage = new Image();
-    shelfImage.src = "shelf.png";
-    let shelfBImage = new Image();
-    shelfBImage.src = "shelfB.png";
-    let wallImage = new Image();
-    wallImage.src = "wall.png";
-    let floorImage = new Image();
-    floorImage.src = "floor.png";
-    let doorImage = new Image();
-    doorImage.src = "door.png";
-    let bloodImage = new Image();
-    bloodImage.src = "blood.png";
-    let titleImage = new Image();
-    titleImage.src = "title.png";
-    let orangeHatImage = new Image();
-    orangeHatImage.src = "orangehat.png";
-    let packMateImage = new Image();
-    packMateImage.src = "packmate.png";
-    
-    // インベントリ操作用関数
-    function removeItemFromInventory(item) {
-      let index = player.inventory.indexOf(item);
-      if (index !== -1) {
-        player.inventory.splice(index, 1);
-      }
-    }
-    function getItemDescription(item) {
-      if (item === "key") return "鍵：地下への扉を解除します。";
-      else if (item === "radio") return "ラジカセ：敵の動きを10ターン停止させます。";
-      else if (item === "doc") return "資料：取得すると200ポイント加算されます。（自動加算）";
-      else if (item === "hallucinogen") return "探知機：敵の位置を10ターン表示します。";
-      else if (item === "warpcoin") return "ワープコイン：ランダムにテレポートします。";
-      else if (item === "map") return "マップ：未発見のマップを10マス開放します。";
-      else if (item === "talisman") return "タリスマン：使用すると、敵を1体消去します。";
-      else return item;
-    }
-    
-    function useItem(item) {
-      if (item === "radio") {
-        for (let enemy of enemies) {
-          enemy.freeze = 10;
+        <!-- オーバーレイ（タイトル／ロゴ画面用） -->
+        <div id="overlay"></div>
+    </div>
+
+    <script>
+        /***** 以下、もともとのゲームロジック（ほぼそのまま） *****/
+
+        // 乱数生成・配列シャッフルなどのユーティリティ
+        function randomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
         }
-        let texts = ["80年代の名曲POPを流した！", "80年代最高のロックを流した！", "80年代のしびれるパンクを流した！"];
-        message = texts[randomInt(0, texts.length - 1)];
-        score += 50;
-        removeItemFromInventory("radio");
-      }
-      else if (item === "hallucinogen") {
-        for (let enemy of enemies) {
-          enemy.hallucinogenTurns = 10;
-        }
-        message = "敵の位置が分かった！";
-        score += 50;
-        removeItemFromInventory("hallucinogen");
-      }
-      else if (item === "warpcoin") {
-        let newPos = randomFloorPosition(dungeon.grid);
-        player.prevX = player.x;
-        player.prevY = player.y;
-        player.x = newPos.x;
-        player.y = newPos.y;
-        player.animTime = 0;
-        player.isMoving = false;
-        message = "導いてくれ！";
-        score += 50;
-        updateVisibility();
-        for (let enemy of enemies) {
-          if (enemy.x === player.x && enemy.y === player.y) {
-            gameState = "dying";
-            player.deathTimer = 0;
-            return;
-          }
-        }
-        removeItemFromInventory("warpcoin");
-      }
-      else if (item === "map") {
-        for (let i = 0; i < 3; i++) {
-          let cell, startX, startY;
-          do {
-            startX = randomInt(0, currentGridWidth - 1);
-            startY = randomInt(0, currentGridHeight - 1);
-            cell = dungeon.grid[startX][startY];
-          } while ((cell.type !== "floor" && cell.type !== "door") || cell.discovered);
-          let cluster = getCluster(startX, startY, 10);
-          for (let pos of cluster) {
-            if (!dungeon.grid[pos.x][pos.y].discovered) {
-              dungeon.grid[pos.x][pos.y].tempRevealed = Infinity;
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
             }
-          }
         }
-        message = "ここのマップが少し分かった！";
-        score += 50;
-        removeItemFromInventory("map");
-      }
-      else if (item === "talisman") {
-        message = "あたたかい光が・・・！";
-        if (enemies.length > 0) {
-          enemies.splice(randomInt(0, enemies.length - 1), 1);
-        }
-        score += 50;
-        removeItemFromInventory("talisman");
-      }
-      else {
-        alert(getItemDescription(item));
-        return;
-      }
-      updateInventoryUI();
-      drawGame();
-    }
-    
-    function getCluster(x, y, count) {
-      let cluster = [];
-      let queue = [{ x: x, y: y }];
-      let visited = new Set();
-      while (queue.length > 0 && cluster.length < count) {
-        let pos = queue.shift();
-        let key = pos.x + "," + pos.y;
-        if (visited.has(key)) continue;
-        visited.add(key);
-        let cell = dungeon.grid[pos.x][pos.y];
-        if (cell.type === "floor" || cell.type === "door") {
-          cluster.push(pos);
-        }
-        let neighbors = [
-          { x: pos.x + 1, y: pos.y },
-          { x: pos.x - 1, y: pos.y },
-          { x: pos.x, y: pos.y + 1 },
-          { x: pos.x, y: pos.y - 1 }
-        ];
-        shuffle(neighbors);
-        for (let n of neighbors) {
-          if (n.x >= 0 && n.x < currentGridWidth && n.y >= 0 && n.y < currentGridHeight) {
-            if (!visited.has(n.x + "," + n.y)) {
-              queue.push(n);
+
+        // 定数など
+        const TILE_SIZE = 24;
+        const animationDuration = 200;
+        const jumpHeight = 8;
+        const deathDuration = 1000;
+        const currentGridWidth = 25;
+        const currentGridHeight = 25;
+
+        let score = 0;
+        let turnCount = 0;
+        let moveCount = 0;
+        let ghostTimeTurnsRemaining = 0;
+        let goalMultiplierAnimation = null;
+        let currentFloor = 1;
+
+        let canvas, ctx;
+        let dungeon;
+        let player;
+        let enemies = [];
+        let gameState = "title";
+        let message = "";
+        let lastFrameTime = 0;
+
+        // サウンド読み込み
+        let titleBGM = new Audio("titleBGM.mp3");
+        titleBGM.loop = true;
+        let stageBGM = new Audio("stageBGM.mp3");
+        stageBGM.loop = true;
+        let itemGetSE = new Audio("itemGetSE.mp3");
+
+        // 画像読み込み
+        let playerImage = new Image();
+        playerImage.src = "player.png";
+        let enemyImage = new Image();
+        enemyImage.src = "mortipack.png";
+        let shelfImage = new Image();
+        shelfImage.src = "shelf.png";
+        let shelfBImage = new Image();
+        shelfBImage.src = "shelfB.png";
+        let wallImage = new Image();
+        wallImage.src = "wall.png";
+        let floorImage = new Image();
+        floorImage.src = "floor.png";
+        let doorImage = new Image();
+        doorImage.src = "door.png";
+        let bloodImage = new Image();
+        bloodImage.src = "blood.png";
+        let titleImage = new Image();
+        titleImage.src = "title.png";
+        let orangeHatImage = new Image();
+        orangeHatImage.src = "orangehat.png";
+        let packMateImage = new Image();
+        packMateImage.src = "packmate.png";
+
+        // インベントリ操作用関数
+        function removeItemFromInventory(item) {
+            let index = player.inventory.indexOf(item);
+            if (index !== -1) {
+                player.inventory.splice(index, 1);
             }
-          }
         }
-      }
-      return cluster;
-    }
-    
-    function drawGame() {
-      let playerDrawPos = player.isMoving ? getDrawPosition(player) : { x: player.x * TILE_SIZE, y: player.y * TILE_SIZE };
-      let camX = (playerDrawPos.x + TILE_SIZE/2) - canvas.width/2;
-      let camY = (playerDrawPos.y + TILE_SIZE/2) - canvas.height/2;
-      
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      let filterStr = "";
-      if (ghostTimeTurnsRemaining > 0) {
-        filterStr += "invert(100%)";
-      }
-      ctx.filter = filterStr || "none";
-      
-      ctx.save();
-      ctx.translate(-camX, -camY);
-      
-      for (let x = 0; x < currentGridWidth; x++) {
-        for (let y = 0; y < currentGridHeight; y++) {
-          let cell = dungeon.grid[x][y];
-          let screenX = x * TILE_SIZE;
-          let screenY = y * TILE_SIZE;
-          if (!cell.discovered && cell.tempRevealed === 0) {
-            ctx.fillStyle = "black";
-            ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
-          } else {
-            if (cell.type === "wall") {
-              if (wallImage.complete) {
-                ctx.drawImage(wallImage, screenX, screenY, TILE_SIZE, TILE_SIZE);
-              } else {
-                ctx.fillStyle = "#555";
-                ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
-              }
-            }
-            else if (cell.type === "floor") {
-              if (floorImage.complete) {
-                ctx.drawImage(floorImage, screenX, screenY, TILE_SIZE, TILE_SIZE);
-              } else {
-                ctx.fillStyle = "#999";
-                ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
-              }
-              if (cell.blood) {
-                if (bloodImage.complete) {
-                  ctx.drawImage(bloodImage, screenX, screenY, TILE_SIZE, TILE_SIZE);
-                } else {
-                  ctx.fillStyle = "darkred";
-                  ctx.fillRect(screenX+4, screenY+4, TILE_SIZE-8, TILE_SIZE-8);
+        function getItemDescription(item) {
+            if (item === "key") return "鍵：地下への扉を解除します。";
+            else if (item === "radio") return "ラジカセ：敵の動きを10ターン停止させます。";
+            else if (item === "doc") return "資料：取得すると200ポイント加算されます。（自動加算）";
+            else if (item === "hallucinogen") return "探知機：敵の位置を10ターン表示します。";
+            else if (item === "warpcoin") return "ワープコイン：ランダムにテレポートします。";
+            else if (item === "map") return "マップ：未発見のマップを10マス開放します。";
+            else if (item === "talisman") return "タリスマン：使用すると、敵を1体消去します。";
+            else return item;
+        }
+
+        function useItem(item) {
+            if (item === "radio") {
+                for (let enemy of enemies) {
+                    enemy.freeze = 10;
                 }
-              }
-            }
-            else if (cell.type === "door") {
-              if (doorImage.complete) {
-                ctx.drawImage(doorImage, screenX, screenY, TILE_SIZE, TILE_SIZE);
-              } else {
-                ctx.fillStyle = "gold";
-                ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
-              }
-            }
-            if (cell.shelf) {
-              if (cell.shelfSearched) {
-                if (shelfBImage.complete) {
-                  ctx.drawImage(shelfBImage, screenX, screenY, TILE_SIZE, TILE_SIZE);
-                } else {
-                  ctx.fillStyle = "peru";
-                  ctx.fillRect(screenX+4, screenY+4, TILE_SIZE-8, TILE_SIZE-8);
-                }
-              } else {
-                if (shelfImage.complete) {
-                  ctx.drawImage(shelfImage, screenX, screenY, TILE_SIZE, TILE_SIZE);
-                } else {
-                  ctx.fillStyle = "saddlebrown";
-                  ctx.fillRect(screenX+4, screenY+4, TILE_SIZE-8, TILE_SIZE-8);
-                }
-              }
-            }
-            if (cell.hiddenChar) {
-              if (cell.hiddenChar === "orangehat") {
-                if (orangeHatImage.complete) {
-                  ctx.drawImage(orangeHatImage, screenX, screenY, TILE_SIZE, TILE_SIZE);
-                } else {
-                  ctx.fillStyle = "orange";
-                  ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
-                }
-              } else if (cell.hiddenChar === "packmate") {
-                if (packMateImage.complete) {
-                  ctx.drawImage(packMateImage, screenX, screenY, TILE_SIZE, TILE_SIZE);
-                } else {
-                  ctx.fillStyle = "purple";
-                  ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
-                }
-              }
-            }
-            if (cell.visible || cell.tempRevealed > 0) {
-              ctx.strokeStyle = "rgba(255,255,255,0.3)";
-              ctx.strokeRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
-            }
-          }
-        }
-      }
-      
-      let playerPos = player.isMoving ? getDrawPosition(player) : { x: player.x * TILE_SIZE, y: player.y * TILE_SIZE };
-      ctx.save();
-      if (gameState === "dying") {
-        ctx.globalAlpha = player.opacity;
-      }
-      if (playerImage.complete) {
-        ctx.drawImage(playerImage, playerPos.x, playerPos.y, TILE_SIZE, TILE_SIZE);
-      } else {
-        ctx.fillStyle = "blue";
-        ctx.beginPath();
-        ctx.arc(playerPos.x+TILE_SIZE/2, playerPos.y+TILE_SIZE/2, TILE_SIZE/3, 0, Math.PI*2);
-        ctx.fill();
-      }
-      ctx.restore();
-      
-      for (let enemy of enemies) {
-        let cellDiscovered = dungeon.grid[enemy.x][enemy.y].discovered;
-        if ((enemy.hallucinogenTurns && enemy.hallucinogenTurns > 0) || cellDiscovered) {
-          let enemyPos = enemy.isMoving ? getDrawPosition(enemy) : { x: enemy.x * TILE_SIZE, y: enemy.y * TILE_SIZE };
-          if (enemyImage.complete) {
-            ctx.drawImage(enemyImage, enemyPos.x, enemyPos.y, TILE_SIZE, TILE_SIZE);
-          } else {
-            ctx.fillStyle = "red";
-            ctx.beginPath();
-            ctx.arc(enemyPos.x+TILE_SIZE/2, enemyPos.y+TILE_SIZE/2, TILE_SIZE/3, 0, Math.PI*2);
-            ctx.fill();
-          }
-        }
-      }
-      
-      ctx.restore();
-      
-      ctx.filter = "none";
-      ctx.fillStyle = "white";
-      ctx.font = "16px sans-serif";
-      ctx.textAlign = "right";
-      let floorLabel = (currentFloor === 1) ? "F1" : "B" + (currentFloor - 1);
-      let uiText = "Score: " + score + "    Turn: " + turnCount + "    Floor: " + floorLabel;
-      ctx.fillText(uiText, canvas.width - 10, 20);
-      ctx.textAlign = "left";
-      ctx.fillText(message, 10, canvas.height - 10);
-      
-      if (goalMultiplierAnimation && goalMultiplierAnimation.active) {
-        ctx.font = "20px sans-serif";
-        ctx.fillStyle = "yellow";
-        ctx.fillText("×" + (currentFloor + 2), playerPos.x, goalMultiplierAnimation.y);
-      }
-    }
-    
-    function getDrawPosition(entity) {
-      let t = entity.animTime / animationDuration;
-      if (t > 1) t = 1;
-      let gridX = entity.prevX + (entity.x - entity.prevX) * t;
-      let gridY = entity.prevY + (entity.y - entity.prevY) * t;
-      let offset = jumpHeight * Math.sin(Math.PI * t);
-      return { x: gridX * TILE_SIZE, y: gridY * TILE_SIZE - offset };
-    }
-    
-    function updateMapReveals(dt) {
-      for (let x = 0; x < currentGridWidth; x++) {
-        for (let y = 0; y < currentGridHeight; y++) {
-          if (dungeon.grid[x][y].tempRevealed !== Infinity && dungeon.grid[x][y].tempRevealed > 0) {
-            dungeon.grid[x][y].tempRevealed = Math.max(dungeon.grid[x][y].tempRevealed - dt, 0);
-          }
-        }
-      }
-    }
-    
-    function generateDungeon() {
-      let grid = [];
-      for (let x = 0; x < currentGridWidth; x++) {
-        grid[x] = [];
-        for (let y = 0; y < currentGridHeight; y++) {
-          grid[x][y] = {
-            type: "wall",
-            discovered: false,
-            visible: false,
-            shelf: false,
-            shelfSearched: false,
-            item: null,
-            forceKey: false,
-            tempRevealed: 0,
-            blood: false,
-            hiddenChar: null
-          };
-        }
-      }
-      let rooms = [];
-      let roomCount = randomInt(5, 10);
-      for (let i = 0; i < roomCount; i++) {
-        let roomW = randomInt(4, 6);
-        let roomH = randomInt(4, 6);
-        let roomX = randomInt(1, currentGridWidth - roomW - 1);
-        let roomY = randomInt(1, currentGridHeight - roomH - 1);
-        let newRoom = { x: roomX, y: roomY, w: roomW, h: roomH };
-        let failed = false;
-        for (let other of rooms) {
-          if (newRoom.x <= other.x + other.w + 1 &&
-              newRoom.x + newRoom.w + 1 >= other.x &&
-              newRoom.y <= other.y + other.h + 1 &&
-              newRoom.y + newRoom.h + 1 >= other.y) {
-            failed = true;
-            break;
-          }
-        }
-        if (!failed) {
-          createRoom(newRoom, grid);
-          rooms.push(newRoom);
-        }
-      }
-      
-      for (let i = 1; i < rooms.length; i++) {
-        let prev = centerOfRoom(rooms[i - 1]);
-        let curr = centerOfRoom(rooms[i]);
-        if (Math.random() < 0.5) {
-          createHCorridor(prev.x, curr.x, prev.y, grid);
-          createVCorridor(prev.y, curr.y, curr.x, grid);
-        } else {
-          createVCorridor(prev.y, curr.y, prev.x, grid);
-          createHCorridor(prev.x, curr.x, curr.y, grid);
-        }
-      }
-      
-      let start = randomFloorPosition(grid);
-      let goal = randomFloorPosition(grid);
-      while (goal.x === start.x && goal.y === start.y) {
-        goal = randomFloorPosition(grid);
-      }
-      grid[goal.x][goal.y].type = "door";
-      
-      for (let x = 0; x < currentGridWidth; x++) {
-        for (let y = 0; y < currentGridHeight; y++) {
-          if (grid[x][y].type === "floor" && Math.random() < 0.05) {
-            grid[x][y].blood = true;
-          }
-        }
-      }
-      
-      let keyPlaced = false;
-      let shelfPositions = [];
-      for (let room of rooms) {
-        let perimeter = [];
-        for (let x = room.x; x < room.x + room.w; x++) {
-          perimeter.push({ x: x, y: room.y });
-        }
-        if (room.h > 1) {
-          for (let x = room.x; x < room.x + room.w; x++) {
-            perimeter.push({ x: x, y: room.y + room.h - 1 });
-          }
-        }
-        if (room.w > 1) {
-          for (let y = room.y + 1; y < room.y + room.h - 1; y++) {
-            perimeter.push({ x: room.x, y: y });
-          }
-        }
-        if (room.w > 1) {
-          for (let y = room.y + 1; y < room.y + room.h - 1; y++) {
-            perimeter.push({ x: room.x + room.w - 1, y: y });
-          }
-        }
-        let uniquePerimeter = {};
-        perimeter.forEach(pos => { uniquePerimeter[pos.x + "," + pos.y] = pos; });
-        perimeter = Object.values(uniquePerimeter);
-        let shelfCount = randomInt(0, 7);
-        if (shelfCount > perimeter.length) shelfCount = perimeter.length;
-        shuffle(perimeter);
-        for (let i = 0; i < shelfCount; i++) {
-          let pos = perimeter[i];
-          if (grid[pos.x][pos.y].type === "floor" && !grid[pos.x][pos.y].shelf) {
-            grid[pos.x][pos.y].shelf = true;
-            grid[pos.x][pos.y].shelfSearched = false;
-            shelfPositions.push({ x: pos.x, y: pos.y });
-            if (Math.random() < 0.4) {
-              if (Math.random() < 0.02) {
-                grid[pos.x][pos.y].item = "talisman";
-              } else {
-                let possibleItems = !keyPlaced ?
-                  ["key", "radio", "doc", "hallucinogen", "warpcoin", "map"] :
-                  ["radio", "doc", "hallucinogen", "warpcoin", "map"];
-                let item = possibleItems[randomInt(0, possibleItems.length - 1)];
-                if (item === "doc") {
-                  score += 200;
-                  message = "資料を手に入れた。これはすごい内容だ！（200ポイント）";
-                } else {
-                  grid[pos.x][pos.y].item = item;
-                  if (item === "key") keyPlaced = true;
-                }
-              }
-            } else {
-              grid[pos.x][pos.y].item = null;
-            }
-          }
-        }
-      }
-      if (!keyPlaced && shelfPositions.length > 0) {
-        let availableShelves = shelfPositions.filter(pos => 
-          !grid[pos.x][pos.y].shelfSearched && !grid[pos.x][pos.y].item
-        );
-        if (availableShelves.length > 0) {
-          let forcedShelf = availableShelves[randomInt(0, availableShelves.length - 1)];
-          grid[forcedShelf.x][forcedShelf.y].item = "key";
-          keyPlaced = true;
-        } else {
-          let forcedShelf = shelfPositions[randomInt(0, shelfPositions.length - 1)];
-          grid[forcedShelf.x][forcedShelf.y].item = "key";
-          grid[forcedShelf.x][forcedShelf.y].shelfSearched = false;
-          keyPlaced = true;
-        }
-      }
-      
-      for (let i = 0; i < 2; i++) {
-        if (randomInt(1, 200) === 1) {
-          let pos = randomFloorPosition(grid);
-          if (!grid[pos.x][pos.y].hiddenChar) {
-            grid[pos.x][pos.y].hiddenChar = (randomInt(0, 1) === 0) ? "orangehat" : "packmate";
-          }
-        }
-      }
-      
-      return { grid: grid, rooms: rooms, start: start, goal: goal };
-    }
-    
-    function createRoom(room, grid) {
-      for (let x = room.x; x < room.x + room.w; x++) {
-        for (let y = room.y; y < room.y + room.h; y++) {
-          grid[x][y].type = "floor";
-        }
-      }
-    }
-    
-    function centerOfRoom(room) {
-      return { x: Math.floor(room.x + room.w / 2), y: Math.floor(room.y + room.h / 2) };
-    }
-    
-    function createHCorridor(x1, x2, y, grid) {
-      for (let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
-        for (let offset = 0; offset < 2; offset++) {
-          if (y + offset < currentGridHeight) {
-            grid[x][y + offset].type = "floor";
-          }
-        }
-      }
-    }
-    
-    function createVCorridor(y1, y2, x, grid) {
-      for (let y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
-        for (let offset = 0; offset < 2; offset++) {
-          if (x + offset < currentGridWidth) {
-            grid[x + offset][y].type = "floor";
-          }
-        }
-      }
-    }
-    
-    function randomFloorPosition(grid) {
-      let pos;
-      while (true) {
-        let x = randomInt(0, currentGridWidth - 1);
-        let y = randomInt(0, currentGridHeight - 1);
-        if (grid[x][y].type === "floor" || grid[x][y].type === "door") {
-          pos = { x: x, y: y };
-          break;
-        }
-      }
-      return pos;
-    }
-    
-    function updateVisibility() {
-      for (let x = 0; x < currentGridWidth; x++) {
-        for (let y = 0; y < currentGridHeight; y++) {
-          dungeon.grid[x][y].visible = false;
-        }
-      }
-      let px = player.x, py = player.y;
-      if (px >= 0 && px < currentGridWidth && py >= 0 && py < currentGridHeight) {
-        dungeon.grid[px][py].visible = true;
-        dungeon.grid[px][py].discovered = true;
-      }
-      for (let dx = -1; dx <= 1; dx++) {
-        for (let dy = -1; dy <= 1; dy++) {
-          let nx = px + dx, ny = py + dy;
-          if (nx >= 0 && nx < currentGridWidth && ny >= 0 && ny < currentGridHeight) {
-            dungeon.grid[nx][ny].visible = true;
-            dungeon.grid[nx][ny].discovered = true;
-          }
-        }
-      }
-    }
-    
-    function newGame() {
-      currentFloor = 1;
-      score = 0;
-      turnCount = 0;
-      moveCount = 0;
-      player = null;
-      nextFloor();
-    }
-    
-    function nextFloor() {
-      if (gameState === "victory") {
-        currentFloor = (currentFloor === 1) ? 2 : currentFloor + 1;
-      }
-      turnCount = 0;
-      moveCount = 0;
-      ghostTimeTurnsRemaining = 0;
-      goalMultiplierAnimation = null;
-      dungeon = generateDungeon();
-      player = {
-        x: dungeon.start.x,
-        y: dungeon.start.y,
-        prevX: dungeon.start.x,
-        prevY: dungeon.start.y,
-        animTime: 0,
-        isMoving: false,
-        inventory: (player && player.inventory) ? player.inventory : [],
-        deathTimer: 0,
-        opacity: 1
-      };
-      enemies = [];
-      let numEnemies = randomInt(3, 5);
-      for (let i = 0; i < numEnemies; i++) {
-        let enemyPos = randomFloorPosition(dungeon.grid);
-        while ((enemyPos.x === dungeon.start.x && enemyPos.y === dungeon.start.y) ||
-               (enemyPos.x === dungeon.goal.x && enemyPos.y === dungeon.goal.y)) {
-          enemyPos = randomFloorPosition(dungeon.grid);
-        }
-        enemies.push({
-          x: enemyPos.x,
-          y: enemyPos.y,
-          prevX: enemyPos.x,
-          prevY: enemyPos.y,
-          animTime: 0,
-          isMoving: false,
-          freeze: 0,
-          delay: 2,
-          hallucinogenTurns: 0
-        });
-      }
-      gameState = "playing";
-      message = "";
-      updateVisibility();
-      updateInventoryUI();
-      lastFrameTime = performance.now();
-      stageBGM.currentTime = 0;
-      stageBGM.play().catch(err => console.log(err));
-      requestAnimationFrame(gameLoop);
-    }
-    
-    function handleKeyDown(e) {
-      if (gameState !== "playing") return;
-      if (player.isMoving) return;
-      let validTurn = false;
-      let newX = player.x;
-      let newY = player.y;
-      if (e.key === "ArrowUp") { newY--; validTurn = true; }
-      else if (e.key === "ArrowDown") { newY++; validTurn = true; }
-      else if (e.key === "ArrowLeft") { newX--; validTurn = true; }
-      else if (e.key === "ArrowRight") { newX++; validTurn = true; }
-      else if (e.key === "e" || e.key === "E") {
-        let cell = dungeon.grid[player.x][player.y];
-        if (cell.shelf && !cell.shelfSearched) {
-          cell.shelfSearched = true;
-          if (cell.forceKey) {
-            player.inventory.push("key");
-            message = "カギが見つかった！";
-            score += 15;
-          } else if (cell.item) {
-            if (cell.item === "doc") {
-              score += 200;
-              message = "資料を手に入れた。これはすごい内容だ！（200ポイント）";
-            } else {
-              player.inventory.push(cell.item);
-              if (["radio", "hallucinogen", "warpcoin", "map", "talisman"].includes(cell.item)) {
+                let texts = ["80年代の名曲POPを流した！", "80年代最高のロックを流した！", "80年代のしびれるパンクを流した！"];
+                message = texts[randomInt(0, texts.length - 1)];
                 score += 50;
-              } else if (cell.item === "key") {
-                score += 15;
-              }
-              message = "アイテム入手: " + getItemDescription(cell.item);
+                removeItemFromInventory("radio");
             }
-          } else {
-            message = "棚は空っぽでした。";
-          }
-          validTurn = true;
-          updateInventoryUI();
-          drawGame();
+            else if (item === "hallucinogen") {
+                for (let enemy of enemies) {
+                    enemy.hallucinogenTurns = 10;
+                }
+                message = "敵の位置が分かった！";
+                score += 50;
+                removeItemFromInventory("hallucinogen");
+            }
+            else if (item === "warpcoin") {
+                let newPos = randomFloorPosition(dungeon.grid);
+                player.prevX = player.x;
+                player.prevY = player.y;
+                player.x = newPos.x;
+                player.y = newPos.y;
+                player.animTime = 0;
+                player.isMoving = false;
+                message = "導いてくれ！";
+                score += 50;
+                updateVisibility();
+                for (let enemy of enemies) {
+                    if (enemy.x === player.x && enemy.y === player.y) {
+                        gameState = "dying";
+                        player.deathTimer = 0;
+                        return;
+                    }
+                }
+                removeItemFromInventory("warpcoin");
+            }
+            else if (item === "map") {
+                for (let i = 0; i < 3; i++) {
+                    let cell, startX, startY;
+                    do {
+                        startX = randomInt(0, currentGridWidth - 1);
+                        startY = randomInt(0, currentGridHeight - 1);
+                        cell = dungeon.grid[startX][startY];
+                    } while ((cell.type !== "floor" && cell.type !== "door") || cell.discovered);
+                    let cluster = getCluster(startX, startY, 10);
+                    for (let pos of cluster) {
+                        if (!dungeon.grid[pos.x][pos.y].discovered) {
+                            dungeon.grid[pos.x][pos.y].tempRevealed = Infinity;
+                        }
+                    }
+                }
+                message = "ここのマップが少し分かった！";
+                score += 50;
+                removeItemFromInventory("map");
+            }
+            else if (item === "talisman") {
+                message = "あたたかい光が・・・！";
+                if (enemies.length > 0) {
+                    enemies.splice(randomInt(0, enemies.length - 1), 1);
+                }
+                score += 50;
+                removeItemFromInventory("talisman");
+            }
+            else {
+                alert(getItemDescription(item));
+                return;
+            }
+            updateInventoryUI();
+            drawGame();
         }
-        return;
-      }
-      if (validTurn) {
-        if (newX < 0 || newX >= currentGridWidth || newY < 0 || newY >= currentGridHeight) return;
-        let destCell = dungeon.grid[newX][newY];
-        if (destCell.type === "wall") {
-          message = "そこには行けません。";
-          drawGame();
-          return;
+
+        function getCluster(x, y, count) {
+            let cluster = [];
+            let queue = [{ x: x, y: y }];
+            let visited = new Set();
+            while (queue.length > 0 && cluster.length < count) {
+                let pos = queue.shift();
+                let key = pos.x + "," + pos.y;
+                if (visited.has(key)) continue;
+                visited.add(key);
+                let cell = dungeon.grid[pos.x][pos.y];
+                if (cell.type === "floor" || cell.type === "door") {
+                    cluster.push(pos);
+                }
+                let neighbors = [
+                    { x: pos.x + 1, y: pos.y },
+                    { x: pos.x - 1, y: pos.y },
+                    { x: pos.x, y: pos.y + 1 },
+                    { x: pos.x, y: pos.y - 1 }
+                ];
+                shuffle(neighbors);
+                for (let n of neighbors) {
+                    if (n.x >= 0 && n.x < currentGridWidth && n.y >= 0 && n.y < currentGridHeight) {
+                        if (!visited.has(n.x + "," + n.y)) {
+                            queue.push(n);
+                        }
+                    }
+                }
+            }
+            return cluster;
         }
-        player.prevX = player.x;
-        player.prevY = player.y;
-        player.x = newX;
-        player.y = newY;
-        player.animTime = 0;
-        player.isMoving = true;
-        message = "";
-        moveCount++;
-        let minDist = Infinity;
-        for (let enemy of enemies) {
-          let d = Math.abs(enemy.x - newX) + Math.abs(enemy.y - newY);
-          if (d < minDist) { minDist = d; }
+
+        function drawGame() {
+            let playerDrawPos = player.isMoving ? getDrawPosition(player) : { x: player.x * TILE_SIZE, y: player.y * TILE_SIZE };
+            let camX = (playerDrawPos.x + TILE_SIZE / 2) - canvas.width / 2;
+            let camY = (playerDrawPos.y + TILE_SIZE / 2) - canvas.height / 2;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            let filterStr = "";
+            if (ghostTimeTurnsRemaining > 0) {
+                filterStr += "invert(100%)";
+            }
+            ctx.filter = filterStr || "none";
+
+            ctx.save();
+            ctx.translate(-camX, -camY);
+
+            for (let x = 0; x < currentGridWidth; x++) {
+                for (let y = 0; y < currentGridHeight; y++) {
+                    let cell = dungeon.grid[x][y];
+                    let screenX = x * TILE_SIZE;
+                    let screenY = y * TILE_SIZE;
+                    if (!cell.discovered && cell.tempRevealed === 0) {
+                        ctx.fillStyle = "black";
+                        ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+                    } else {
+                        if (cell.type === "wall") {
+                            if (wallImage.complete) {
+                                ctx.drawImage(wallImage, screenX, screenY, TILE_SIZE, TILE_SIZE);
+                            } else {
+                                ctx.fillStyle = "#555";
+                                ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+                            }
+                        }
+                        else if (cell.type === "floor") {
+                            if (floorImage.complete) {
+                                ctx.drawImage(floorImage, screenX, screenY, TILE_SIZE, TILE_SIZE);
+                            } else {
+                                ctx.fillStyle = "#999";
+                                ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+                            }
+                            if (cell.blood) {
+                                if (bloodImage.complete) {
+                                    ctx.drawImage(bloodImage, screenX, screenY, TILE_SIZE, TILE_SIZE);
+                                } else {
+                                    ctx.fillStyle = "darkred";
+                                    ctx.fillRect(screenX + 4, screenY + 4, TILE_SIZE - 8, TILE_SIZE - 8);
+                                }
+                            }
+                        }
+                        else if (cell.type === "door") {
+                            if (doorImage.complete) {
+                                ctx.drawImage(doorImage, screenX, screenY, TILE_SIZE, TILE_SIZE);
+                            } else {
+                                ctx.fillStyle = "gold";
+                                ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+                            }
+                        }
+                        if (cell.shelf) {
+                            if (cell.shelfSearched) {
+                                if (shelfBImage.complete) {
+                                    ctx.drawImage(shelfBImage, screenX, screenY, TILE_SIZE, TILE_SIZE);
+                                } else {
+                                    ctx.fillStyle = "peru";
+                                    ctx.fillRect(screenX + 4, screenY + 4, TILE_SIZE - 8, TILE_SIZE - 8);
+                                }
+                            } else {
+                                if (shelfImage.complete) {
+                                    ctx.drawImage(shelfImage, screenX, screenY, TILE_SIZE, TILE_SIZE);
+                                } else {
+                                    ctx.fillStyle = "saddlebrown";
+                                    ctx.fillRect(screenX + 4, screenY + 4, TILE_SIZE - 8, TILE_SIZE - 8);
+                                }
+                            }
+                        }
+                        if (cell.hiddenChar) {
+                            if (cell.hiddenChar === "orangehat") {
+                                if (orangeHatImage.complete) {
+                                    ctx.drawImage(orangeHatImage, screenX, screenY, TILE_SIZE, TILE_SIZE);
+                                } else {
+                                    ctx.fillStyle = "orange";
+                                    ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+                                }
+                            } else if (cell.hiddenChar === "packmate") {
+                                if (packMateImage.complete) {
+                                    ctx.drawImage(packMateImage, screenX, screenY, TILE_SIZE, TILE_SIZE);
+                                } else {
+                                    ctx.fillStyle = "purple";
+                                    ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+                                }
+                            }
+                        }
+                        if (cell.visible || cell.tempRevealed > 0) {
+                            ctx.strokeStyle = "rgba(255,255,255,0.3)";
+                            ctx.strokeRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+                        }
+                    }
+                }
+            }
+
+            let playerPos = player.isMoving ? getDrawPosition(player) : { x: player.x * TILE_SIZE, y: player.y * TILE_SIZE };
+            ctx.save();
+            if (gameState === "dying") {
+                ctx.globalAlpha = player.opacity;
+            }
+            if (playerImage.complete) {
+                ctx.drawImage(playerImage, playerPos.x, playerPos.y, TILE_SIZE, TILE_SIZE);
+            } else {
+                ctx.fillStyle = "blue";
+                ctx.beginPath();
+                ctx.arc(playerPos.x + TILE_SIZE / 2, playerPos.y + TILE_SIZE / 2, TILE_SIZE / 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+
+            for (let enemy of enemies) {
+                let cellDiscovered = dungeon.grid[enemy.x][enemy.y].discovered;
+                if ((enemy.hallucinogenTurns && enemy.hallucinogenTurns > 0) || cellDiscovered) {
+                    let enemyPos = enemy.isMoving ? getDrawPosition(enemy) : { x: enemy.x * TILE_SIZE, y: enemy.y * TILE_SIZE };
+                    if (enemyImage.complete) {
+                        ctx.drawImage(enemyImage, enemyPos.x, enemyPos.y, TILE_SIZE, TILE_SIZE);
+                    } else {
+                        ctx.fillStyle = "red";
+                        ctx.beginPath();
+                        ctx.arc(enemyPos.x + TILE_SIZE / 2, enemyPos.y + TILE_SIZE / 2, TILE_SIZE / 3, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+            }
+
+            ctx.restore();
+
+            ctx.filter = "none";
+            ctx.fillStyle = "white";
+            ctx.font = "16px sans-serif";
+            ctx.textAlign = "right";
+            let floorLabel = (currentFloor === 1) ? "F1" : "B" + (currentFloor - 1);
+            let uiText = "Score: " + score + "    Turn: " + turnCount + "    Floor: " + floorLabel;
+            ctx.fillText(uiText, canvas.width - 10, 20);
+            ctx.textAlign = "left";
+            ctx.fillText(message, 10, canvas.height - 10);
+
+            if (goalMultiplierAnimation && goalMultiplierAnimation.active) {
+                ctx.font = "20px sans-serif";
+                ctx.fillStyle = "yellow";
+                ctx.fillText("×" + (currentFloor + 2), playerPos.x, goalMultiplierAnimation.y);
+            }
         }
-        score += (minDist <= 2 ? 15 : 10);
-        updateVisibility();
-        let currentCell = dungeon.grid[player.x][player.y];
-        if (currentCell.hiddenChar) {
-          score += 1000;
-          message = "隠しキャラ発見！1000ポイント獲得！";
-          currentCell.hiddenChar = null;
+
+        function getDrawPosition(entity) {
+            let t = entity.animTime / animationDuration;
+            if (t > 1) t = 1;
+            let gridX = entity.prevX + (entity.x - entity.prevX) * t;
+            let gridY = entity.prevY + (entity.y - entity.prevY) * t;
+            let offset = jumpHeight * Math.sin(Math.PI * t);
+            return { x: gridX * TILE_SIZE, y: gridY * TILE_SIZE - offset };
         }
-        if (destCell.type === "door") {
-          let keyIndex = player.inventory.indexOf("key");
-          if (keyIndex !== -1) {
-            player.inventory.splice(keyIndex, 1);
-            score *= (currentFloor + 2);
-            goalMultiplierAnimation = { active: true, y: player.y * TILE_SIZE - 10, startTime: performance.now(), duration: 1000 };
-            gameState = "victory";
+
+        function updateMapReveals(dt) {
+            for (let x = 0; x < currentGridWidth; x++) {
+                for (let y = 0; y < currentGridHeight; y++) {
+                    if (dungeon.grid[x][y].tempRevealed !== Infinity && dungeon.grid[x][y].tempRevealed > 0) {
+                        dungeon.grid[x][y].tempRevealed = Math.max(dungeon.grid[x][y].tempRevealed - dt, 0);
+                    }
+                }
+            }
+        }
+
+        function generateDungeon() {
+            let grid = [];
+            for (let x = 0; x < currentGridWidth; x++) {
+                grid[x] = [];
+                for (let y = 0; y < currentGridHeight; y++) {
+                    grid[x][y] = {
+                        type: "wall",
+                        discovered: false,
+                        visible: false,
+                        shelf: false,
+                        shelfSearched: false,
+                        item: null,
+                        forceKey: false,
+                        tempRevealed: 0,
+                        blood: false,
+                        hiddenChar: null
+                    };
+                }
+            }
+            let rooms = [];
+            let roomCount = randomInt(5, 10);
+            for (let i = 0; i < roomCount; i++) {
+                let roomW = randomInt(4, 6);
+                let roomH = randomInt(4, 6);
+                let roomX = randomInt(1, currentGridWidth - roomW - 1);
+                let roomY = randomInt(1, currentGridHeight - roomH - 1);
+                let newRoom = { x: roomX, y: roomY, w: roomW, h: roomH };
+                let failed = false;
+                for (let other of rooms) {
+                    if (newRoom.x <= other.x + other.w + 1 &&
+                        newRoom.x + newRoom.w + 1 >= other.x &&
+                        newRoom.y <= other.y + other.h + 1 &&
+                        newRoom.y + newRoom.h + 1 >= other.y) {
+                        failed = true;
+                        break;
+                    }
+                }
+                if (!failed) {
+                    createRoom(newRoom, grid);
+                    rooms.push(newRoom);
+                }
+            }
+
+            for (let i = 1; i < rooms.length; i++) {
+                let prev = centerOfRoom(rooms[i - 1]);
+                let curr = centerOfRoom(rooms[i]);
+                if (Math.random() < 0.5) {
+                    createHCorridor(prev.x, curr.x, prev.y, grid);
+                    createVCorridor(prev.y, curr.y, curr.x, grid);
+                } else {
+                    createVCorridor(prev.y, curr.y, prev.x, grid);
+                    createHCorridor(prev.x, curr.x, curr.y, grid);
+                }
+            }
+
+            let start = randomFloorPosition(grid);
+            let goal = randomFloorPosition(grid);
+            while (goal.x === start.x && goal.y === start.y) {
+                goal = randomFloorPosition(grid);
+            }
+            grid[goal.x][goal.y].type = "door";
+
+            for (let x = 0; x < currentGridWidth; x++) {
+                for (let y = 0; y < currentGridHeight; y++) {
+                    if (grid[x][y].type === "floor" && Math.random() < 0.05) {
+                        grid[x][y].blood = true;
+                    }
+                }
+            }
+
+            let keyPlaced = false;
+            let shelfPositions = [];
+            for (let room of rooms) {
+                let perimeter = [];
+                for (let x = room.x; x < room.x + room.w; x++) {
+                    perimeter.push({ x: x, y: room.y });
+                }
+                if (room.h > 1) {
+                    for (let x = room.x; x < room.x + room.w; x++) {
+                        perimeter.push({ x: x, y: room.y + room.h - 1 });
+                    }
+                }
+                if (room.w > 1) {
+                    for (let y = room.y + 1; y < room.y + room.h - 1; y++) {
+                        perimeter.push({ x: room.x, y: y });
+                    }
+                }
+                if (room.w > 1) {
+                    for (let y = room.y + 1; y < room.y + room.h - 1; y++) {
+                        perimeter.push({ x: room.x + room.w - 1, y: y });
+                    }
+                }
+                let uniquePerimeter = {};
+                perimeter.forEach(pos => { uniquePerimeter[pos.x + "," + pos.y] = pos; });
+                perimeter = Object.values(uniquePerimeter);
+                let shelfCount = randomInt(0, 7);
+                if (shelfCount > perimeter.length) shelfCount = perimeter.length;
+                shuffle(perimeter);
+                for (let i = 0; i < shelfCount; i++) {
+                    let pos = perimeter[i];
+                    if (grid[pos.x][pos.y].type === "floor" && !grid[pos.x][pos.y].shelf) {
+                        grid[pos.x][pos.y].shelf = true;
+                        grid[pos.x][pos.y].shelfSearched = false;
+                        shelfPositions.push({ x: pos.x, y: pos.y });
+                        if (Math.random() < 0.4) {
+                            if (Math.random() < 0.02) {
+                                grid[pos.x][pos.y].item = "talisman";
+                            } else {
+                                let possibleItems = !keyPlaced ?
+                                    ["key", "radio", "doc", "hallucinogen", "warpcoin", "map"] :
+                                    ["radio", "doc", "hallucinogen", "warpcoin", "map"];
+                                let item = possibleItems[randomInt(0, possibleItems.length - 1)];
+                                if (item === "doc") {
+                                    score += 200;
+                                    message = "資料を手に入れた。これはすごい内容だ！（200ポイント）";
+                                } else {
+                                    grid[pos.x][pos.y].item = item;
+                                    if (item === "key") keyPlaced = true;
+                                }
+                            }
+                        } else {
+                            grid[pos.x][pos.y].item = null;
+                        }
+                    }
+                }
+            }
+            if (!keyPlaced && shelfPositions.length > 0) {
+                let availableShelves = shelfPositions.filter(pos =>
+                    !grid[pos.x][pos.y].shelfSearched && !grid[pos.x][pos.y].item
+                );
+                if (availableShelves.length > 0) {
+                    let forcedShelf = availableShelves[randomInt(0, availableShelves.length - 1)];
+                    grid[forcedShelf.x][forcedShelf.y].item = "key";
+                    keyPlaced = true;
+                } else {
+                    let forcedShelf = shelfPositions[randomInt(0, shelfPositions.length - 1)];
+                    grid[forcedShelf.x][forcedShelf.y].item = "key";
+                    grid[forcedShelf.x][forcedShelf.y].shelfSearched = false;
+                    keyPlaced = true;
+                }
+            }
+
+            for (let i = 0; i < 2; i++) {
+                if (randomInt(1, 200) === 1) {
+                    let pos = randomFloorPosition(grid);
+                    if (!grid[pos.x][pos.y].hiddenChar) {
+                        grid[pos.x][pos.y].hiddenChar = (randomInt(0, 1) === 0) ? "orangehat" : "packmate";
+                    }
+                }
+            }
+
+            return { grid: grid, rooms: rooms, start: start, goal: goal };
+        }
+
+        function createRoom(room, grid) {
+            for (let x = room.x; x < room.x + room.w; x++) {
+                for (let y = room.y; y < room.y + room.h; y++) {
+                    grid[x][y].type = "floor";
+                }
+            }
+        }
+
+        function centerOfRoom(room) {
+            return { x: Math.floor(room.x + room.w / 2), y: Math.floor(room.y + room.h / 2) };
+        }
+
+        function createHCorridor(x1, x2, y, grid) {
+            for (let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
+                for (let offset = 0; offset < 2; offset++) {
+                    if (y + offset < currentGridHeight) {
+                        grid[x][y + offset].type = "floor";
+                    }
+                }
+            }
+        }
+
+        function createVCorridor(y1, y2, x, grid) {
+            for (let y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
+                for (let offset = 0; offset < 2; offset++) {
+                    if (x + offset < currentGridWidth) {
+                        grid[x + offset][y].type = "floor";
+                    }
+                }
+            }
+        }
+
+        function randomFloorPosition(grid) {
+            let pos;
+            while (true) {
+                let x = randomInt(0, currentGridWidth - 1);
+                let y = randomInt(0, currentGridHeight - 1);
+                if (grid[x][y].type === "floor" || grid[x][y].type === "door") {
+                    pos = { x: x, y: y };
+                    break;
+                }
+            }
+            return pos;
+        }
+
+        function updateVisibility() {
+            for (let x = 0; x < currentGridWidth; x++) {
+                for (let y = 0; y < currentGridHeight; y++) {
+                    dungeon.grid[x][y].visible = false;
+                }
+            }
+            let px = player.x, py = player.y;
+            if (px >= 0 && px < currentGridWidth && py >= 0 && py < currentGridHeight) {
+                dungeon.grid[px][py].visible = true;
+                dungeon.grid[px][py].discovered = true;
+            }
+            for (let dx = -1; dx <= 1; dx++) {
+                for (let dy = -1; dy <= 1; dy++) {
+                    let nx = px + dx, ny = py + dy;
+                    if (nx >= 0 && nx < currentGridWidth && ny >= 0 && ny < currentGridHeight) {
+                        dungeon.grid[nx][ny].visible = true;
+                        dungeon.grid[nx][ny].discovered = true;
+                    }
+                }
+            }
+        }
+
+        function newGame() {
+            currentFloor = 1;
+            score = 0;
+            turnCount = 0;
+            moveCount = 0;
+            player = null;
+            nextFloor();
+        }
+
+        function nextFloor() {
+            if (gameState === "victory") {
+                currentFloor = (currentFloor === 1) ? 2 : currentFloor + 1;
+            }
+            turnCount = 0;
+            moveCount = 0;
+            ghostTimeTurnsRemaining = 0;
+            goalMultiplierAnimation = null;
+            dungeon = generateDungeon();
+            player = {
+                x: dungeon.start.x,
+                y: dungeon.start.y,
+                prevX: dungeon.start.x,
+                prevY: dungeon.start.y,
+                animTime: 0,
+                isMoving: false,
+                inventory: (player && player.inventory) ? player.inventory : [],
+                deathTimer: 0,
+                opacity: 1
+            };
+            enemies = [];
+            let numEnemies = randomInt(3, 5);
+            for (let i = 0; i < numEnemies; i++) {
+                let enemyPos = randomFloorPosition(dungeon.grid);
+                while ((enemyPos.x === dungeon.start.x && enemyPos.y === dungeon.start.y) ||
+                    (enemyPos.x === dungeon.goal.x && enemyPos.y === dungeon.goal.y)) {
+                    enemyPos = randomFloorPosition(dungeon.grid);
+                }
+                enemies.push({
+                    x: enemyPos.x,
+                    y: enemyPos.y,
+                    prevX: enemyPos.x,
+                    prevY: enemyPos.y,
+                    animTime: 0,
+                    isMoving: false,
+                    freeze: 0,
+                    delay: 2,
+                    hallucinogenTurns: 0
+                });
+            }
+            gameState = "playing";
+            message = "";
+            updateVisibility();
+            updateInventoryUI();
+            lastFrameTime = performance.now();
+            stageBGM.currentTime = 0;
+            stageBGM.play().catch(err => console.log(err));
+            requestAnimationFrame(gameLoop);
+        }
+
+        function handleKeyDown(e) {
+            if (gameState !== "playing") return;
+            if (player.isMoving) return;
+            let validTurn = false;
+            let newX = player.x;
+            let newY = player.y;
+            if (e.key === "ArrowUp") { newY--; validTurn = true; }
+            else if (e.key === "ArrowDown") { newY++; validTurn = true; }
+            else if (e.key === "ArrowLeft") { newX--; validTurn = true; }
+            else if (e.key === "ArrowRight") { newX++; validTurn = true; }
+            else if (e.key === "e" || e.key === "E") {
+                let cell = dungeon.grid[player.x][player.y];
+                if (cell.shelf && !cell.shelfSearched) {
+                    cell.shelfSearched = true;
+                    if (cell.forceKey) {
+                        player.inventory.push("key");
+                        message = "カギが見つかった！";
+                        score += 15;
+                    } else if (cell.item) {
+                        if (cell.item === "doc") {
+                            score += 200;
+                            message = "資料を手に入れた。これはすごい内容だ！（200ポイント）";
+                        } else {
+                            player.inventory.push(cell.item);
+                            if (["radio", "hallucinogen", "warpcoin", "map", "talisman"].includes(cell.item)) {
+                                score += 50;
+                            } else if (cell.item === "key") {
+                                score += 15;
+                            }
+                            message = "アイテム入手: " + getItemDescription(cell.item);
+                        }
+                    } else {
+                        message = "棚は空っぽでした。";
+                    }
+                    validTurn = true;
+                    updateInventoryUI();
+                    drawGame();
+                }
+                return;
+            }
+            if (validTurn) {
+                if (newX < 0 || newX >= currentGridWidth || newY < 0 || newY >= currentGridHeight) return;
+                let destCell = dungeon.grid[newX][newY];
+                if (destCell.type === "wall") {
+                    message = "そこには行けません。";
+                    drawGame();
+                    return;
+                }
+                player.prevX = player.x;
+                player.prevY = player.y;
+                player.x = newX;
+                player.y = newY;
+                player.animTime = 0;
+                player.isMoving = true;
+                message = "";
+                moveCount++;
+                let minDist = Infinity;
+                for (let enemy of enemies) {
+                    let d = Math.abs(enemy.x - newX) + Math.abs(enemy.y - newY);
+                    if (d < minDist) { minDist = d; }
+                }
+                score += (minDist <= 2 ? 15 : 10);
+                updateVisibility();
+                let currentCell = dungeon.grid[player.x][player.y];
+                if (currentCell.hiddenChar) {
+                    score += 1000;
+                    message = "隠しキャラ発見！1000ポイント獲得！";
+                    currentCell.hiddenChar = null;
+                }
+                if (destCell.type === "door") {
+                    let keyIndex = player.inventory.indexOf("key");
+                    if (keyIndex !== -1) {
+                        player.inventory.splice(keyIndex, 1);
+                        score *= (currentFloor + 2);
+                        goalMultiplierAnimation = { active: true, y: player.y * TILE_SIZE - 10, startTime: performance.now(), duration: 1000 };
+                        gameState = "victory";
+                        stageBGM.pause();
+                        stageBGM.currentTime = 0;
+                        drawGame();
+                        showVictory();
+                        return;
+                    } else {
+                        message = "鍵が必要です。";
+                    }
+                }
+                for (let enemy of enemies) {
+                    if (enemy.delay > 0) {
+                        enemy.delay--;
+                        continue;
+                    }
+                    if (enemy.freeze > 0) {
+                        enemy.freeze--;
+                        continue;
+                    }
+                    let d = Math.abs(enemy.x - player.x) + Math.abs(enemy.y - player.y);
+                    if (d <= 3) {
+                        moveEnemyTowards(enemy);
+                    }
+                }
+                for (let enemy of enemies) {
+                    if (enemy.x === player.x && enemy.y === player.y) {
+                        if (gameState !== "dying") {
+                            gameState = "dying";
+                            player.deathTimer = 0;
+                        }
+                        drawGame();
+                        return;
+                    }
+                }
+                processTurn();
+                drawGame();
+            }
+        }
+        window.addEventListener("keydown", handleKeyDown);
+
+        function moveEnemyTowards(enemy) {
+            if (ghostTimeTurnsRemaining > 0) {
+                let dx = Math.sign(player.x - enemy.x);
+                let dy = Math.sign(player.y - enemy.y);
+                if (isWalkable(enemy.x + dx, enemy.y + dy)) {
+                    enemy.prevX = enemy.x;
+                    enemy.prevY = enemy.y;
+                    enemy.x += dx;
+                    enemy.y += dy;
+                    enemy.animTime = 0;
+                    enemy.isMoving = true;
+                    return;
+                }
+            }
+            let candidates = [];
+            let directions = [
+                { dx: 1, dy: 0 },
+                { dx: -1, dy: 0 },
+                { dx: 0, dy: 1 },
+                { dx: 0, dy: -1 }
+            ];
+            for (let d of directions) {
+                let newX = enemy.x + d.dx;
+                let newY = enemy.y + d.dy;
+                if (isWalkable(newX, newY)) {
+                    let distance = Math.abs(newX - player.x) + Math.abs(newY - player.y);
+                    candidates.push({ newX, newY, distance });
+                }
+            }
+            if (candidates.length === 0) return;
+            candidates.sort((a, b) => a.distance - b.distance);
+            let bestDistance = candidates[0].distance;
+            let totalWeight = 0;
+            for (let c of candidates) {
+                c.weight = 1 / (1 + (c.distance - bestDistance));
+                totalWeight += c.weight;
+            }
+            let rand = Math.random() * totalWeight;
+            let chosen = candidates[0];
+            for (let c of candidates) {
+                rand -= c.weight;
+                if (rand <= 0) {
+                    chosen = c;
+                    break;
+                }
+            }
+            enemy.prevX = enemy.x;
+            enemy.prevY = enemy.y;
+            enemy.x = chosen.newX;
+            enemy.y = chosen.newY;
+            enemy.animTime = 0;
+            enemy.isMoving = true;
+        }
+
+        function isWalkable(x, y) {
+            if (x < 0 || x >= currentGridWidth || y < 0 || y >= currentGridHeight) return false;
+            let type = dungeon.grid[x][y].type;
+            return (type === "floor" || type === "door");
+        }
+
+        function updateAnimations(dt) {
+            if (player.isMoving) {
+                player.animTime += dt;
+                if (player.animTime >= animationDuration) {
+                    player.animTime = animationDuration;
+                    player.isMoving = false;
+                }
+            }
+            for (let enemy of enemies) {
+                if (enemy.isMoving) {
+                    enemy.animTime += dt;
+                    if (enemy.animTime >= animationDuration) {
+                        enemy.animTime = animationDuration;
+                        enemy.isMoving = false;
+                    }
+                }
+            }
+            if (gameState === "dying") {
+                player.deathTimer += dt;
+                player.opacity = Math.max(1 - player.deathTimer / deathDuration, 0);
+                if (player.deathTimer >= deathDuration) {
+                    gameState = "gameOver";
+                    drawGame();
+                    showGameOver();
+                    return;
+                }
+            }
+        }
+
+        function gameLoop(timestamp) {
+            let dt = timestamp - lastFrameTime;
+            lastFrameTime = timestamp;
+            updateAnimations(dt);
+            updateMapReveals(dt);
+            drawGame();
+            if (goalMultiplierAnimation && goalMultiplierAnimation.active) {
+                let elapsed = performance.now() - goalMultiplierAnimation.startTime;
+                if (elapsed < goalMultiplierAnimation.duration) {
+                    goalMultiplierAnimation.y = player.y * TILE_SIZE - 10 - (elapsed / 10);
+                } else {
+                    goalMultiplierAnimation.active = false;
+                }
+            }
+            if (gameState === "playing" || gameState === "dying") {
+                requestAnimationFrame(gameLoop);
+            }
+        }
+
+        function showTitleScreen() {
+            gameState = "title";
+            let overlay = document.getElementById("overlay");
+            overlay.style.display = "flex";
+            overlay.style.opacity = "1";
+            overlay.style.transition = "";
+            // タイトル画像とスタートボタンを縦並びにするため、画像は高さを70%程度に調整
+            overlay.innerHTML = "<img src='title.png' alt='MORTIPACK' style='width:100%; max-height:70%; object-fit:contain;'><button id='startButton'>スタート</button>";
+            titleBGM.currentTime = 0;
+            titleBGM.play().catch(err => console.log(err));
             stageBGM.pause();
             stageBGM.currentTime = 0;
-            drawGame();
-            showVictory();
-            return;
-          } else {
-            message = "鍵が必要です。";
-          }
+            document.getElementById("startButton").addEventListener("click", function () {
+                titleBGM.pause();
+                titleBGM.currentTime = 0;
+                overlay.style.display = "none";
+                newGame();
+            });
         }
-        for (let enemy of enemies) {
-          if (enemy.delay > 0) {
-            enemy.delay--;
-            continue;
-          }
-          if (enemy.freeze > 0) {
-            enemy.freeze--;
-            continue;
-          }
-          let d = Math.abs(enemy.x - player.x) + Math.abs(enemy.y - player.y);
-          if (d <= 3) {
-            moveEnemyTowards(enemy);
-          }
+
+        function showLogoScreen() {
+            const overlay = document.getElementById("overlay");
+            overlay.style.display = "flex";
+            overlay.style.opacity = "1";
+            overlay.style.transition = "opacity 1s";
+            // ロゴ画像は画面全体と同じサイズに合わせる（単体表示の場合は画像のみ）
+            overlay.innerHTML = "<img src='logo.png' alt='Logo' style='width:100%; height:100%; object-fit:contain;'>";
+            overlay.addEventListener("click", function handleLogoClick() {
+                overlay.removeEventListener("click", handleLogoClick);
+                overlay.style.opacity = "0";
+                setTimeout(() => {
+                    overlay.style.display = "none";
+                    showTitleScreen();
+                }, 1000);
+            });
         }
-        for (let enemy of enemies) {
-          if (enemy.x === player.x && enemy.y === player.y) {
-            if (gameState !== "dying") {
-              gameState = "dying";
-              player.deathTimer = 0;
+
+        function showGameOver() {
+            let overlay = document.getElementById("overlay");
+            overlay.style.display = "flex";
+            // ボタン群を縦並びにするため、ラッパーdivで囲む
+            overlay.innerHTML = "<h1>GAME OVER</h1><p>最終スコア: " + score + "</p><div style='display: flex; flex-direction: column; align-items: center;'>" +
+                "<button id='restartButton'>リスタート</button>" +
+                "<button id='giveUpButton'>あきらめる...</button></div>";
+            document.getElementById("restartButton").addEventListener("click", function () {
+                overlay.style.display = "none";
+                newGame();
+            });
+            document.getElementById("giveUpButton").addEventListener("click", function () {
+                overlay.style.display = "none";
+                showTitleScreen();
+            });
+        }
+
+        function showVictory() {
+            let overlay = document.getElementById("overlay");
+            overlay.style.display = "flex";
+            // ボタン群を縦並びにするため、ラッパーdivで囲む
+            overlay.innerHTML = "<h1>さらに地下へ！</h1><p>スコア: " + score + "</p><div style='display: flex; flex-direction: column; align-items: center;'>" +
+                "<button id='nextFloorButton'>次の階へ</button>" +
+                "<button id='giveUpButton'>タイトルへ</button></div>";
+            goalMultiplierAnimation = { active: true, y: player.y * TILE_SIZE - 10, startTime: performance.now(), duration: 1000 };
+            stageBGM.pause();
+            stageBGM.currentTime = 0;
+            document.getElementById("nextFloorButton").addEventListener("click", function () {
+                overlay.style.display = "none";
+                nextFloor();
+            });
+            document.getElementById("giveUpButton").addEventListener("click", function () {
+                overlay.style.display = "none";
+                showTitleScreen();
+            });
+        }
+
+        function processTurn() {
+            turnCount++;
+            if (turnCount % 100 === 0) {
+                addNewEnemy();
             }
-            drawGame();
-            return;
-          }
+            for (let enemy of enemies) {
+                if (enemy.hallucinogenTurns && enemy.hallucinogenTurns > 0) {
+                    enemy.hallucinogenTurns--;
+                }
+            }
+            if (ghostTimeTurnsRemaining > 0) {
+                ghostTimeTurnsRemaining--;
+            } else {
+                if (randomInt(1, 1000) === 1) {
+                    ghostTimeTurnsRemaining = 15;
+                    message = "ゴーストタイム発動！";
+                }
+            }
         }
-        processTurn();
-        drawGame();
-      }
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    
-    function moveEnemyTowards(enemy) {
-      if (ghostTimeTurnsRemaining > 0) {
-        let dx = Math.sign(player.x - enemy.x);
-        let dy = Math.sign(player.y - enemy.y);
-        if (isWalkable(enemy.x + dx, enemy.y + dy)) {
-          enemy.prevX = enemy.x;
-          enemy.prevY = enemy.y;
-          enemy.x += dx;
-          enemy.y += dy;
-          enemy.animTime = 0;
-          enemy.isMoving = true;
-          return;
-        }
-      }
-      let candidates = [];
-      let directions = [
-        { dx: 1, dy: 0 },
-        { dx: -1, dy: 0 },
-        { dx: 0, dy: 1 },
-        { dx: 0, dy: -1 }
-      ];
-      for (let d of directions) {
-        let newX = enemy.x + d.dx;
-        let newY = enemy.y + d.dy;
-        if (isWalkable(newX, newY)) {
-          let distance = Math.abs(newX - player.x) + Math.abs(newY - player.y);
-          candidates.push({ newX, newY, distance });
-        }
-      }
-      if (candidates.length === 0) return;
-      candidates.sort((a, b) => a.distance - b.distance);
-      let bestDistance = candidates[0].distance;
-      let totalWeight = 0;
-      for (let c of candidates) {
-        c.weight = 1 / (1 + (c.distance - bestDistance));
-        totalWeight += c.weight;
-      }
-      let rand = Math.random() * totalWeight;
-      let chosen = candidates[0];
-      for (let c of candidates) {
-        rand -= c.weight;
-        if (rand <= 0) {
-          chosen = c;
-          break;
-        }
-      }
-      enemy.prevX = enemy.x;
-      enemy.prevY = enemy.y;
-      enemy.x = chosen.newX;
-      enemy.y = chosen.newY;
-      enemy.animTime = 0;
-      enemy.isMoving = true;
-    }
-    
-    function isWalkable(x, y) {
-      if (x < 0 || x >= currentGridWidth || y < 0 || y >= currentGridHeight) return false;
-      let type = dungeon.grid[x][y].type;
-      return (type === "floor" || type === "door");
-    }
-    
-    function updateAnimations(dt) {
-      if (player.isMoving) {
-        player.animTime += dt;
-        if (player.animTime >= animationDuration) {
-          player.animTime = animationDuration;
-          player.isMoving = false;
-        }
-      }
-      for (let enemy of enemies) {
-        if (enemy.isMoving) {
-          enemy.animTime += dt;
-          if (enemy.animTime >= animationDuration) {
-            enemy.animTime = animationDuration;
-            enemy.isMoving = false;
-          }
-        }
-      }
-      if (gameState === "dying") {
-        player.deathTimer += dt;
-        player.opacity = Math.max(1 - player.deathTimer / deathDuration, 0);
-        if (player.deathTimer >= deathDuration) {
-          gameState = "gameOver";
-          drawGame();
-          showGameOver();
-          return;
-        }
-      }
-    }
-    
-    function gameLoop(timestamp) {
-      let dt = timestamp - lastFrameTime;
-      lastFrameTime = timestamp;
-      updateAnimations(dt);
-      updateMapReveals(dt);
-      drawGame();
-      if (goalMultiplierAnimation && goalMultiplierAnimation.active) {
-        let elapsed = performance.now() - goalMultiplierAnimation.startTime;
-        if (elapsed < goalMultiplierAnimation.duration) {
-          goalMultiplierAnimation.y = player.y * TILE_SIZE - 10 - (elapsed / 10);
-        } else {
-          goalMultiplierAnimation.active = false;
-        }
-      }
-      if (gameState === "playing" || gameState === "dying") {
-        requestAnimationFrame(gameLoop);
-      }
-    }
-    
-    function showTitleScreen() {
-      gameState = "title";
-      let overlay = document.getElementById("overlay");
-      overlay.style.display = "flex";
-      overlay.style.opacity = "1";
-      overlay.style.transition = "";
-      // タイトル画像も同様にcanvas全体と同じサイズにする
-      overlay.innerHTML = "<img src='title.png' alt='MORTIPACK' style='width:100%; height:100%; object-fit:contain;'><button id='startButton'>スタート</button>";
-      titleBGM.currentTime = 0;
-      titleBGM.play().catch(err => console.log(err));
-      stageBGM.pause();
-      stageBGM.currentTime = 0;
-      document.getElementById("startButton").addEventListener("click", function () {
-        titleBGM.pause();
-        titleBGM.currentTime = 0;
-        overlay.style.display = "none";
-        newGame();
-      });
-    }
-    
-    function showLogoScreen() {
-      const overlay = document.getElementById("overlay");
-      overlay.style.display = "flex";
-      overlay.style.opacity = "1";
-      overlay.style.transition = "opacity 1s";
-      // 画像のスタイルをwidth:100%; height:100%にして、親要素（#overlay）のサイズに合わせる
-      overlay.innerHTML = "<img src='logo.png' alt='Logo' style='width:100%; height:100%; object-fit:contain;'>";
 
-        overlay.addEventListener("click", function handleLogoClick() {
-          overlay.removeEventListener("click", handleLogoClick);
-          overlay.style.opacity = "0";
-          setTimeout(() => {
-              overlay.style.display = "none";
-              showTitleScreen();
-          }, 1000);
-      });
-    }
-    
-    function showGameOver() {
-      let overlay = document.getElementById("overlay");
-      overlay.style.display = "flex";
-      overlay.innerHTML = "<h1>GAME OVER</h1><p>最終スコア: " + score + "</p><button id='restartButton'>リスタート</button><button id='giveUpButton'>あきらめる...</button>";
-      document.getElementById("restartButton").addEventListener("click", function () {
-        overlay.style.display = "none";
-        newGame();
-      });
-      document.getElementById("giveUpButton").addEventListener("click", function () {
-        overlay.style.display = "none";
-        showTitleScreen();
-      });
-    }
-    
-    function showVictory() {
-      let overlay = document.getElementById("overlay");
-      overlay.style.display = "flex";
-      overlay.innerHTML = "<h1>さらに地下へ！</h1><p>スコア: " + score + "</p><button id='nextFloorButton'>次の階へ</button><button id='giveUpButton'>タイトルへ</button>";
-      goalMultiplierAnimation = { active: true, y: player.y * TILE_SIZE - 10, startTime: performance.now(), duration: 1000 };
-      stageBGM.pause();
-      stageBGM.currentTime = 0;
-      document.getElementById("nextFloorButton").addEventListener("click", function () {
-        overlay.style.display = "none";
-        nextFloor();
-      });
-      document.getElementById("giveUpButton").addEventListener("click", function () {
-        overlay.style.display = "none";
-        showTitleScreen();
-      });
-    }
-    
-    function processTurn() {
-      turnCount++;
-      if (turnCount % 100 === 0) {
-        addNewEnemy();
-      }
-      for (let enemy of enemies) {
-        if (enemy.hallucinogenTurns && enemy.hallucinogenTurns > 0) {
-          enemy.hallucinogenTurns--;
+        function addNewEnemy() {
+            let enemyPos = randomFloorPosition(dungeon.grid);
+            enemies.push({
+                x: enemyPos.x,
+                y: enemyPos.y,
+                prevX: enemyPos.x,
+                prevY: enemyPos.y,
+                animTime: 0,
+                isMoving: false,
+                freeze: 0,
+                delay: 2,
+                hallucinogenTurns: 0
+            });
+            message = "新たな敵が現れた！";
         }
-      }
-      if (ghostTimeTurnsRemaining > 0) {
-        ghostTimeTurnsRemaining--;
-      } else {
-        if (randomInt(1, 1000) === 1) {
-          ghostTimeTurnsRemaining = 15;
-          message = "ゴーストタイム発動！";
-        }
-      }
-    }
-    
-    function addNewEnemy() {
-      let enemyPos = randomFloorPosition(dungeon.grid);
-      enemies.push({
-        x: enemyPos.x,
-        y: enemyPos.y,
-        prevX: enemyPos.x,
-        prevY: enemyPos.y,
-        animTime: 0,
-        isMoving: false,
-        freeze: 0,
-        delay: 2,
-        hallucinogenTurns: 0
-      });
-      message = "新たな敵が現れた！";
-    }
-    
-    function updateInventoryUI() {
-      let keyDiv = document.getElementById("keyInventory");
-      let itemDiv = document.getElementById("itemInventory");
-      keyDiv.innerHTML = "";
-      itemDiv.innerHTML = "";
-      let keys = player.inventory.filter(item => item === "key");
-      let others = player.inventory.filter(item => item !== "key" && item !== "doc");
-      keys.forEach((item) => {
-        let span = document.createElement("span");
-        span.textContent = "カギ";
-        span.title = getItemDescription(item);
-        keyDiv.appendChild(span);
-      });
-      others.forEach((item) => {
-        let span = document.createElement("span");
-        let text = "";
-        if (item === "radio") text = "ラジカセ";
-        else if (item === "hallucinogen") text = "探知機";
-        else if (item === "warpcoin") text = "ワープコイン";
-        else if (item === "map") text = "マップ";
-        else if (item === "talisman") text = "タリスマン";
-        else text = item;
-        span.textContent = text;
-        span.title = getItemDescription(item);
-        span.onclick = function () { useItem(item); };
-        itemDiv.appendChild(span);
-      });
-    }
-    
-    // ここからモバイル操作用：各矢印ボタン押下時にキー入力イベントを発生
-      document.addEventListener("DOMContentLoaded", function () {
-          // 矢印ボタンの処理
-          document.querySelectorAll('.arrow').forEach(btn => {
-              btn.addEventListener('click', function () {
-                  let direction = btn.getAttribute('data-direction');
-                  handleKeyDown({ key: direction });
-              });
-          });
 
-          // 「調べる」ボタンの処理
-          document.getElementById('investigateButton').addEventListener('click', function () {
-              handleKeyDown({ key: 'e' });
-          });
-      });
-    
-    // window.onload時にキャンバスサイズを端末横幅に合わせる
-    window.onload = function () {
-      canvas = document.getElementById("gameCanvas");
-      ctx = canvas.getContext("2d");
-      let size = window.innerWidth;  // 端末の横幅を取得
-      canvas.width = size;
-      canvas.height = size;
-      showLogoScreen();
-    };
-    
-  </script>
+        function updateInventoryUI() {
+            let keyDiv = document.getElementById("keyInventory");
+            let itemDiv = document.getElementById("itemInventory");
+            keyDiv.innerHTML = "";
+            itemDiv.innerHTML = "";
+            let keys = player.inventory.filter(item => item === "key");
+            let others = player.inventory.filter(item => item !== "key" && item !== "doc");
+            keys.forEach((item) => {
+                let span = document.createElement("span");
+                span.textContent = "カギ";
+                span.title = getItemDescription(item);
+                keyDiv.appendChild(span);
+            });
+            others.forEach((item) => {
+                let span = document.createElement("span");
+                let text = "";
+                if (item === "radio") text = "ラジカセ";
+                else if (item === "hallucinogen") text = "探知機";
+                else if (item === "warpcoin") text = "ワープコイン";
+                else if (item === "map") text = "マップ";
+                else if (item === "talisman") text = "タリスマン";
+                else text = item;
+                span.textContent = text;
+                span.title = getItemDescription(item);
+                span.onclick = function () { useItem(item); };
+                itemDiv.appendChild(span);
+            });
+        }
+
+        // ここからモバイル操作用：各矢印ボタン押下時にキー入力イベントを発生
+        document.addEventListener("DOMContentLoaded", function () {
+            // 矢印ボタンの処理
+            document.querySelectorAll('.arrow').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    let direction = btn.getAttribute('data-direction');
+                    handleKeyDown({ key: direction });
+                });
+            });
+
+            // 「調べる」ボタンの処理
+            document.getElementById('investigateButton').addEventListener('click', function () {
+                handleKeyDown({ key: 'e' });
+            });
+        });
+
+        // window.onload時にキャンバスサイズを端末横幅に合わせる
+        window.onload = function () {
+            canvas = document.getElementById("gameCanvas");
+            ctx = canvas.getContext("2d");
+            let size = window.innerWidth;  // 端末の横幅を取得
+            canvas.width = size;
+            canvas.height = size;
+            showLogoScreen();
+        };
+
+    </script>
 </body>
 </html>
