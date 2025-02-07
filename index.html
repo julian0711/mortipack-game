@@ -2,34 +2,84 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <title>MORTIPACK ～袋に注意！～</title>
+  <title>MORTIPACK ～袋に注意！～ (Mobile Version)</title>
+  <!-- ビューポート設定 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
+    /* リセット */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      margin: 0;
       background: #000;
       color: #fff;
       font-family: sans-serif;
       overflow: hidden;
     }
-    canvas {
-      display: block;
-      margin: 50px auto 0 auto;
-      background: #222;
+    /* ゲーム全体のコンテナ */
+    #gameContainer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
-    /* オーバーレイ用 */
-      #overlay {
-          position: absolute;
-          top: 50px; /* canvasと同じ余白 */
-          left: calc(50% - 160px); /* 320px幅の半分（160px）を引いて中央に配置 */
-          width: 320px;
-          height: 320px;
-          background: rgba(0, 0, 0, 0.85);
-          display: none;
-          align-items: center;
-          justify-content: center;
-          flex-direction: column;
-          z-index: 10;
-      }
+    /* ゲーム画面：横幅に合わせた正方形 */
+    canvas {
+      background: #222;
+      width: 100vw;   /* 画面横幅に合わせる */
+      height: 100vw;  /* 正方形にする */
+      display: block;
+    }
+    /* インベントリ（カギ＆アイテム）の表示エリア（canvas直下） */
+    #inventoryPanel {
+      width: 100vw;
+      background: #333;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px;
+    }
+    #inventoryPanel span {
+      padding: 4px 8px;
+      background: rgba(255,255,255,0.1);
+      margin: 2px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    /* 操作用ボタンエリア */
+    #controls {
+      width: 100vw;
+      padding: 10px;
+      background: #222;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #controls .arrow-row {
+      display: flex;
+      justify-content: center;
+      margin: 5px 0;
+    }
+    #controls button {
+      width: 60px;
+      height: 60px;
+      margin: 5px;
+      font-size: 24px;
+      border: none;
+      border-radius: 8px;
+      background: #555;
+      color: #fff;
+    }
+    /* オーバーレイ（タイトル画面やロゴ画面用） */
+    #overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 10;
+    }
     #overlay h1 {
       margin-bottom: 20px;
       font-size: 48px;
@@ -39,46 +89,40 @@
       padding: 10px 20px;
       font-size: 20px;
     }
-    /* インベントリパネル */
-    #inventoryPanel {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      right: 10px;
-      z-index: 5;
-      pointer-events: none;
-    }
-    #keyInventory, #itemInventory {
-      display: inline-block;
-      pointer-events: auto;
-    }
-    #keyInventory { float: left; }
-    #itemInventory { float: right; }
-    #keyInventory span, #itemInventory span {
-      padding: 4px 8px;
-      background: rgba(255,255,255,0.1);
-      margin: 2px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
   </style>
 </head>
 <body>
-  <!-- インベントリパネル -->
-  <div id="inventoryPanel">
-    <div id="keyInventory"></div>
-    <div id="itemInventory"></div>
+  <!-- ゲーム画面全体のコンテナ -->
+  <div id="gameContainer">
+    <!-- ゲームキャンバス -->
+    <canvas id="gameCanvas" width="320" height="320"></canvas>
+    <!-- インベントリ表示（カギ・アイテム） -->
+    <div id="inventoryPanel">
+      <div id="keyInventory"></div>
+      <div id="itemInventory"></div>
+    </div>
+    <!-- 操作用のカーソルボタン -->
+    <div id="controls">
+      <div class="arrow-row">
+        <button class="arrow" data-direction="ArrowUp">↑</button>
+      </div>
+      <div class="arrow-row">
+        <button class="arrow" data-direction="ArrowLeft">←</button>
+        <button class="arrow" data-direction="ArrowDown">↓</button>
+        <button class="arrow" data-direction="ArrowRight">→</button>
+      </div>
+    </div>
   </div>
-  <canvas id="gameCanvas"></canvas>
+  <!-- オーバーレイ（タイトル／ロゴ画面用） -->
   <div id="overlay"></div>
   
   <script>
-    /***** 必要な関数群の定義 *****/
-    // randomInt: min～max の整数乱数を返す
+    /***** 以下、もともとのゲームロジック（ほぼそのまま） *****/
+    
+    // 乱数生成・配列シャッフルなどのユーティリティ
     function randomInt(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
-    // shuffle: 配列をシャッフルする
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -86,7 +130,7 @@
       }
     }
     
-    /***** グローバル定数と変数 *****/
+    // 定数など
     const TILE_SIZE = 24;
     const animationDuration = 200;
     const jumpHeight = 8;
@@ -96,28 +140,27 @@
     
     let score = 0;
     let turnCount = 0;
-    let moveCount = 0;  // 棚復活処理は削除
+    let moveCount = 0;
     let ghostTimeTurnsRemaining = 0;
     let goalMultiplierAnimation = null;
-    let currentFloor = 1;  // 初期は F1
+    let currentFloor = 1;
     
     let canvas, ctx;
-    let dungeon; // { grid, rooms, start, goal }
-    let player;  // { x, y, prevX, prevY, animTime, isMoving, inventory, deathTimer, opacity }
-    let enemies = []; // 各敵: { x, y, prevX, prevY, animTime, isMoving, freeze, delay, hallucinogenTurns }
-    let gameState = "title"; // "title", "playing", "dying", "gameOver", "victory"
+    let dungeon;
+    let player;
+    let enemies = [];
+    let gameState = "title";
     let message = "";
     let lastFrameTime = 0;
     
-    /***** サウンド読み込み *****/
-    // 使用する音声は titleBGM, stageBGM, itemGetSE のみ
+    // サウンド読み込み
     let titleBGM = new Audio("titleBGM.mp3");
     titleBGM.loop = true;
     let stageBGM = new Audio("stageBGM.mp3");
     stageBGM.loop = true;
     let itemGetSE = new Audio("itemGetSE.mp3");
     
-    /***** 画像読み込み *****/
+    // 画像読み込み
     let playerImage = new Image();
     playerImage.src = "player.png";
     let enemyImage = new Image();
@@ -136,13 +179,12 @@
     bloodImage.src = "blood.png";
     let titleImage = new Image();
     titleImage.src = "title.png";
-    // 隠しキャラ用画像
     let orangeHatImage = new Image();
     orangeHatImage.src = "orangehat.png";
     let packMateImage = new Image();
     packMateImage.src = "packmate.png";
     
-    /***** その他のユーティリティ関数 *****/
+    // インベントリ操作用関数
     function removeItemFromInventory(item) {
       let index = player.inventory.indexOf(item);
       if (index !== -1) {
@@ -160,7 +202,6 @@
       else return item;
     }
     
-    /***** アイテム使用処理 *****/
     function useItem(item) {
       if (item === "radio") {
         for (let enemy of enemies) {
@@ -265,7 +306,6 @@
       return cluster;
     }
     
-    /***** drawGame 関数 *****/
     function drawGame() {
       let playerDrawPos = player.isMoving ? getDrawPosition(player) : { x: player.x * TILE_SIZE, y: player.y * TILE_SIZE };
       let camX = (playerDrawPos.x + TILE_SIZE/2) - canvas.width/2;
@@ -282,7 +322,6 @@
       ctx.save();
       ctx.translate(-camX, -camY);
       
-      // グリッド描画
       for (let x = 0; x < currentGridWidth; x++) {
         for (let y = 0; y < currentGridHeight; y++) {
           let cell = dungeon.grid[x][y];
@@ -324,7 +363,6 @@
                 ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
               }
             }
-            // 棚描画
             if (cell.shelf) {
               if (cell.shelfSearched) {
                 if (shelfBImage.complete) {
@@ -342,7 +380,6 @@
                 }
               }
             }
-            // 隠しキャラ描画
             if (cell.hiddenChar) {
               if (cell.hiddenChar === "orangehat") {
                 if (orangeHatImage.complete) {
@@ -368,7 +405,6 @@
         }
       }
       
-      // プレイヤー描画
       let playerPos = player.isMoving ? getDrawPosition(player) : { x: player.x * TILE_SIZE, y: player.y * TILE_SIZE };
       ctx.save();
       if (gameState === "dying") {
@@ -384,7 +420,6 @@
       }
       ctx.restore();
       
-      // 敵描画
       for (let enemy of enemies) {
         let cellDiscovered = dungeon.grid[enemy.x][enemy.y].discovered;
         if ((enemy.hallucinogenTurns && enemy.hallucinogenTurns > 0) || cellDiscovered) {
@@ -403,7 +438,6 @@
       ctx.restore();
       
       ctx.filter = "none";
-      // UI 表示
       ctx.fillStyle = "white";
       ctx.font = "16px sans-serif";
       ctx.textAlign = "right";
@@ -420,7 +454,6 @@
       }
     }
     
-    /***** getDrawPosition 関数 *****/
     function getDrawPosition(entity) {
       let t = entity.animTime / animationDuration;
       if (t > 1) t = 1;
@@ -430,7 +463,6 @@
       return { x: gridX * TILE_SIZE, y: gridY * TILE_SIZE - offset };
     }
     
-    /***** updateMapReveals 関数 *****/
     function updateMapReveals(dt) {
       for (let x = 0; x < currentGridWidth; x++) {
         for (let y = 0; y < currentGridHeight; y++) {
@@ -441,7 +473,6 @@
       }
     }
     
-    /***** ダンジョン生成関数 *****/
     function generateDungeon() {
       let grid = [];
       for (let x = 0; x < currentGridWidth; x++) {
@@ -453,11 +484,11 @@
             visible: false,
             shelf: false,
             shelfSearched: false,
-            item: null, // "key", "radio", "doc", "hallucinogen", "warpcoin", "map", "talisman"
+            item: null,
             forceKey: false,
             tempRevealed: 0,
             blood: false,
-            hiddenChar: null  // 隠しキャラ（"orangehat" または "packmate"）
+            hiddenChar: null
           };
         }
       }
@@ -568,7 +599,6 @@
           }
         }
       }
-      // 鍵の強制配置
       if (!keyPlaced && shelfPositions.length > 0) {
         let availableShelves = shelfPositions.filter(pos => 
           !grid[pos.x][pos.y].shelfSearched && !grid[pos.x][pos.y].item
@@ -585,7 +615,6 @@
         }
       }
       
-      // 隠しキャラの配置：2回の試行で各 1/200 の確率で配置
       for (let i = 0; i < 2; i++) {
         if (randomInt(1, 200) === 1) {
           let pos = randomFloorPosition(grid);
@@ -665,18 +694,15 @@
       }
     }
     
-    /***** ゲーム進行関連 *****/
-    // newGame: 完全リセット（死亡時はアイテムもリセットし F1 からスタート）
     function newGame() {
       currentFloor = 1;
       score = 0;
       turnCount = 0;
       moveCount = 0;
-      player = null; // 完全リセット
+      player = null;
       nextFloor();
     }
     
-    // nextFloor: ステージクリア後に次階へ進む（死亡時はリセット、クリア時は持ち越し）
     function nextFloor() {
       if (gameState === "victory") {
         currentFloor = (currentFloor === 1) ? 2 : currentFloor + 1;
@@ -686,7 +712,6 @@
       ghostTimeTurnsRemaining = 0;
       goalMultiplierAnimation = null;
       dungeon = generateDungeon();
-      // newGame() の場合、player は null なので inventory は空配列
       player = {
         x: dungeon.start.x,
         y: dungeon.start.y,
@@ -728,7 +753,6 @@
       requestAnimationFrame(gameLoop);
     }
     
-    /***** キー入力処理 *****/
     function handleKeyDown(e) {
       if (gameState !== "playing") return;
       if (player.isMoving) return;
@@ -792,7 +816,6 @@
         }
         score += (minDist <= 2 ? 15 : 10);
         updateVisibility();
-        // 隠しキャラ取得チェック
         let currentCell = dungeon.grid[player.x][player.y];
         if (currentCell.hiddenChar) {
           score += 1000;
@@ -845,7 +868,6 @@
     }
     window.addEventListener("keydown", handleKeyDown);
     
-    /***** 敵移動処理 *****/
     function moveEnemyTowards(enemy) {
       if (ghostTimeTurnsRemaining > 0) {
         let dx = Math.sign(player.x - enemy.x);
@@ -906,7 +928,6 @@
       return (type === "floor" || type === "door");
     }
     
-    /***** アニメーション更新＆ゲームループ *****/
     function updateAnimations(dt) {
       if (player.isMoving) {
         player.animTime += dt;
@@ -955,61 +976,41 @@
       }
     }
     
-    /***** ウィンドウ読み込み時 *****/
-      window.onload = function () {
-          canvas = document.getElementById("gameCanvas");
-          ctx = canvas.getContext("2d");
-          canvas.width = 320;
-          canvas.height = 320;
-          showLogoScreen();  // タイトル画面ではなく、最初にロゴ画面を表示する
-      };
-
-    /***** オーバーレイ表示 *****/
-      function showTitleScreen() {
-          gameState = "title";
-          let overlay = document.getElementById("overlay");
-          overlay.style.display = "flex";
-          overlay.style.opacity = "1";
-          // ここでtransitionの設定をリセット（前のフェードアウトの影響を避けるため）
-          overlay.style.transition = "";
-
-          // タイトル画像も320×320ピクセルに設定し、スタートボタンを追加
-          overlay.innerHTML = "<img src='title.png' alt='MORTIPACK' style='width:320px; height:320px; object-fit: contain; margin-bottom:20px;'><button id='startButton'>スタート</button>";
-
-          // タイトルBGMの再生設定などはそのまま
-          titleBGM.currentTime = 0;
-          titleBGM.play().catch(err => console.log(err));
-          stageBGM.pause();
-          stageBGM.currentTime = 0;
-
-          document.getElementById("startButton").addEventListener("click", function () {
-              titleBGM.pause();
-              titleBGM.currentTime = 0;
+    function showTitleScreen() {
+      gameState = "title";
+      let overlay = document.getElementById("overlay");
+      overlay.style.display = "flex";
+      overlay.style.opacity = "1";
+      overlay.style.transition = "";
+      overlay.innerHTML = "<img src='title.png' alt='MORTIPACK' style='width:320px; height:320px; object-fit: contain; margin-bottom:20px;'><button id='startButton'>スタート</button>";
+      titleBGM.currentTime = 0;
+      titleBGM.play().catch(err => console.log(err));
+      stageBGM.pause();
+      stageBGM.currentTime = 0;
+      document.getElementById("startButton").addEventListener("click", function () {
+        titleBGM.pause();
+        titleBGM.currentTime = 0;
+        overlay.style.display = "none";
+        newGame();
+      });
+    }
+    
+    function showLogoScreen() {
+      const overlay = document.getElementById("overlay");
+      overlay.style.display = "flex";
+      overlay.style.opacity = "1";
+      overlay.style.transition = "opacity 1s";
+      overlay.innerHTML = "<img src='logo.png' alt='Logo' style='width:320px; height:320px; object-fit: contain; margin-bottom:20px;'>";
+      overlay.addEventListener("click", function handleLogoClick() {
+          overlay.removeEventListener("click", handleLogoClick);
+          overlay.style.opacity = "0";
+          setTimeout(() => {
               overlay.style.display = "none";
-              newGame();
-          });
-      }
-
-      /***** ロゴの表記 *****/
-      function showLogoScreen() {
-          const overlay = document.getElementById("overlay");
-          overlay.style.display = "flex";
-          overlay.style.opacity = "1";
-          overlay.style.transition = "opacity 1s";
-
-          // 画像の幅と高さを320pxに設定（object-fitで画像の縦横比も調整できます）
-          overlay.innerHTML = "<img src='logo.png' alt='Logo' style='width:320px; height:320px; object-fit: contain; margin-bottom:20px;'>";
-
-          overlay.addEventListener("click", function handleLogoClick() {
-              overlay.removeEventListener("click", handleLogoClick);
-              overlay.style.opacity = "0";
-              setTimeout(() => {
-                  overlay.style.display = "none";
-                  showTitleScreen();
-              }, 1000);
-          });
-      }
-
+              showTitleScreen();
+          }, 1000);
+      });
+    }
+    
     function showGameOver() {
       let overlay = document.getElementById("overlay");
       overlay.style.display = "flex";
@@ -1041,7 +1042,6 @@
       });
     }
     
-    /***** 入力処理後のターン更新 *****/
     function processTurn() {
       turnCount++;
       if (turnCount % 100 === 0) {
@@ -1078,7 +1078,6 @@
       message = "新たな敵が現れた！";
     }
     
-    /***** インベントリUI更新 *****/
     function updateInventoryUI() {
       let keyDiv = document.getElementById("keyInventory");
       let itemDiv = document.getElementById("itemInventory");
@@ -1107,6 +1106,26 @@
         itemDiv.appendChild(span);
       });
     }
+    
+    // ここからモバイル操作用：各矢印ボタン押下時にキー入力イベントを発生
+    document.addEventListener("DOMContentLoaded", function() {
+      document.querySelectorAll('.arrow').forEach(btn => {
+        btn.addEventListener('click', function() {
+          let direction = btn.getAttribute('data-direction');
+          handleKeyDown({ key: direction });
+        });
+      });
+    });
+    
+    // window.onload時にキャンバスサイズを端末横幅に合わせる
+    window.onload = function () {
+      canvas = document.getElementById("gameCanvas");
+      ctx = canvas.getContext("2d");
+      let size = window.innerWidth;  // 端末の横幅を取得
+      canvas.width = size;
+      canvas.height = size;
+      showLogoScreen();
+    };
     
   </script>
 </body>
