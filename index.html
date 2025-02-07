@@ -998,12 +998,12 @@
             overlay.style.display = "flex";
             overlay.style.opacity = "1";
             overlay.style.transition = "";
-            // タイトル画像とスタートボタンを縦並びにするため、画像は高さを70%程度に調整
             overlay.innerHTML = "<img src='title.png' alt='MORTIPACK' style='width:100%; max-height:70%; object-fit:contain;'><button id='startButton'>スタート</button>";
             titleBGM.currentTime = 0;
             titleBGM.play().catch(err => console.log(err));
-            stageBGM.pause();
-            stageBGM.currentTime = 0;
+            // ↓ stageBGM はそのままループさせるので、下記の行を削除またはコメントアウト
+            // stageBGM.pause();
+            // stageBGM.currentTime = 0;
             document.getElementById("startButton").addEventListener("click", function () {
                 titleBGM.pause();
                 titleBGM.currentTime = 0;
@@ -1049,13 +1049,13 @@
         function showVictory() {
             let overlay = document.getElementById("overlay");
             overlay.style.display = "flex";
-            // ボタン群を縦並びにするため、ラッパーdivで囲む
             overlay.innerHTML = "<h1>さらに地下へ！</h1><p>スコア: " + score + "</p><div style='display: flex; flex-direction: column; align-items: center;'>" +
                 "<button id='nextFloorButton'>次の階へ</button>" +
                 "<button id='giveUpButton'>タイトルへ</button></div>";
             goalMultiplierAnimation = { active: true, y: player.y * TILE_SIZE - 10, startTime: performance.now(), duration: 1000 };
-            stageBGM.pause();
-            stageBGM.currentTime = 0;
+            // ↓ stageBGM はそのままループさせるので、以下の行を削除またはコメントアウト
+            // stageBGM.pause();
+            // stageBGM.currentTime = 0;
             document.getElementById("nextFloorButton").addEventListener("click", function () {
                 overlay.style.display = "none";
                 nextFloor();
