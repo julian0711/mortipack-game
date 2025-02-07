@@ -15,11 +15,12 @@
       overflow: hidden;
     }
     /* ゲーム全体のコンテナ */
-    #gameContainer {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+      #gameContainer {
+         position: relative;
+         display: flex;
+         flex-direction: column;
+         align-items: center;
+      }
     /* ゲーム画面：横幅に合わせた正方形 */
     canvas {
       background: #222;
@@ -67,19 +68,18 @@
       color: #fff;
     }
     /* オーバーレイ（タイトル画面やロゴ画面用） */
-    #overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.85);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      z-index: 10;
-    }
+      #overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100vw;
+          height: 100vh;
+          background: rgba(0, 0, 0, 0.85);
+          display: none;
+          align-items: center;
+          justify-content: center;
+          z-index: 10;
+      }
     #overlay h1 {
       margin-bottom: 20px;
       font-size: 48px;
@@ -113,7 +113,7 @@
   </div>
   <!-- 調べるボタンを追加 -->
   <div class="action-row">
-    <button id="investigateButton">調べる</button>
+    <button id="investigateButton"></button>
   </div>
 </div>
 
@@ -986,7 +986,8 @@
       overlay.style.display = "flex";
       overlay.style.opacity = "1";
       overlay.style.transition = "";
-      overlay.innerHTML = "<img src='title.png' alt='MORTIPACK' style='width:320px; height:320px; object-fit: contain; margin-bottom:20px;'><button id='startButton'>スタート</button>";
+      // タイトル画像も同様にcanvas全体と同じサイズにする
+      overlay.innerHTML = "<img src='title.png' alt='MORTIPACK' style='width:100%; height:100%; object-fit:contain;'><button id='startButton'>スタート</button>";
       titleBGM.currentTime = 0;
       titleBGM.play().catch(err => console.log(err));
       stageBGM.pause();
@@ -1004,8 +1005,10 @@
       overlay.style.display = "flex";
       overlay.style.opacity = "1";
       overlay.style.transition = "opacity 1s";
-      overlay.innerHTML = "<img src='logo.png' alt='Logo' style='width:320px; height:320px; object-fit: contain; margin-bottom:20px;'>";
-      overlay.addEventListener("click", function handleLogoClick() {
+      // 画像のスタイルをwidth:100%; height:100%にして、親要素（#overlay）のサイズに合わせる
+      overlay.innerHTML = "<img src='logo.png' alt='Logo' style='width:100%; height:100%; object-fit:contain;'>";
+
+        overlay.addEventListener("click", function handleLogoClick() {
           overlay.removeEventListener("click", handleLogoClick);
           overlay.style.opacity = "0";
           setTimeout(() => {
