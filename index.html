@@ -102,17 +102,21 @@
       <div id="itemInventory"></div>
     </div>
     <!-- 操作用のカーソルボタン -->
-    <div id="controls">
-      <div class="arrow-row">
-        <button class="arrow" data-direction="ArrowUp">↑</button>
-      </div>
-      <div class="arrow-row">
-        <button class="arrow" data-direction="ArrowLeft">←</button>
-        <button class="arrow" data-direction="ArrowDown">↓</button>
-        <button class="arrow" data-direction="ArrowRight">→</button>
-      </div>
-    </div>
+<div id="controls">
+  <div class="arrow-row">
+    <button class="arrow" data-direction="ArrowUp">↑</button>
   </div>
+  <div class="arrow-row">
+    <button class="arrow" data-direction="ArrowLeft">←</button>
+    <button class="arrow" data-direction="ArrowDown">↓</button>
+    <button class="arrow" data-direction="ArrowRight">→</button>
+  </div>
+  <!-- 調べるボタンを追加 -->
+  <div class="action-row">
+    <button id="investigateButton">調べる</button>
+  </div>
+</div>
+
   <!-- オーバーレイ（タイトル／ロゴ画面用） -->
   <div id="overlay"></div>
   
@@ -1108,14 +1112,20 @@
     }
     
     // ここからモバイル操作用：各矢印ボタン押下時にキー入力イベントを発生
-    document.addEventListener("DOMContentLoaded", function() {
-      document.querySelectorAll('.arrow').forEach(btn => {
-        btn.addEventListener('click', function() {
-          let direction = btn.getAttribute('data-direction');
-          handleKeyDown({ key: direction });
-        });
+      document.addEventListener("DOMContentLoaded", function () {
+          // 矢印ボタンの処理
+          document.querySelectorAll('.arrow').forEach(btn => {
+              btn.addEventListener('click', function () {
+                  let direction = btn.getAttribute('data-direction');
+                  handleKeyDown({ key: direction });
+              });
+          });
+
+          // 「調べる」ボタンの処理
+          document.getElementById('investigateButton').addEventListener('click', function () {
+              handleKeyDown({ key: 'e' });
+          });
       });
-    });
     
     // window.onload時にキャンバスサイズを端末横幅に合わせる
     window.onload = function () {
