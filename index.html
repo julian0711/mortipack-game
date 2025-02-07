@@ -330,11 +330,14 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             let filterStr = "";
+            // ゲームシーンの描画が終わった後
+            ctx.filter = "none"; // フィルターはリセット
+            // ここで、ゴーストタイム中なら半透明のオーバーレイを描画
             if (ghostTimeTurnsRemaining > 0) {
-                filterStr += "invert(100%)";
+                // 例として、青みがかった効果。色や透明度はお好みで調整してください。
+                ctx.fillStyle = "rgba(200, 200, 255, 0.2)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
-            ctx.filter = filterStr || "none";
-
             ctx.save();
             ctx.translate(-camX, -camY);
 
