@@ -77,7 +77,7 @@
           background: rgba(0, 0, 0, 0.85);
           display: none;
           align-items: center;
-          justify-content: center;
+          justify-content: flex-start;
           z-index: 10;
       }
     #overlay h1 {
@@ -113,7 +113,7 @@
   </div>
   <!-- 調べるボタンを追加 -->
   <div class="action-row">
-    <button id="investigateButton"></button>
+      <button id="investigateButton">Srch</button>
   </div>
 </div>
 
@@ -1035,7 +1035,7 @@
     function showVictory() {
       let overlay = document.getElementById("overlay");
       overlay.style.display = "flex";
-      overlay.innerHTML = "<h1>脱出成功！</h1><p>最終スコア: " + score + "</p><button id='nextFloorButton'>次の階へ</button><button id='giveUpButton'>タイトルへ</button>";
+      overlay.innerHTML = "<h1>さらに地下へ！</h1><p>スコア: " + score + "</p><button id='nextFloorButton'>次の階へ</button><button id='giveUpButton'>タイトルへ</button>";
       goalMultiplierAnimation = { active: true, y: player.y * TILE_SIZE - 10, startTime: performance.now(), duration: 1000 };
       stageBGM.pause();
       stageBGM.currentTime = 0;
