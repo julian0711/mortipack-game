@@ -997,16 +997,20 @@
 
         function showTitleScreen() {
             gameState = "title";
+            // ★ stageBGM を停止してリセットする
+            stageBGM.pause();
+            stageBGM.currentTime = 0;
+
             let overlay = document.getElementById("overlay");
             overlay.style.display = "flex";
             overlay.style.opacity = "1";
             overlay.style.transition = "";
             overlay.innerHTML = "<img src='title.png' alt='MORTIPACK' style='width:100%; max-height:70%; object-fit:contain;'><button id='startButton'>スタート</button>";
+
+            // タイトルBGMを再生
             titleBGM.currentTime = 0;
             titleBGM.play().catch(err => console.log(err));
-            // ↓ stageBGM はそのままループさせるので、下記の行を削除またはコメントアウト
-            // stageBGM.pause();
-            // stageBGM.currentTime = 0;
+
             document.getElementById("startButton").addEventListener("click", function () {
                 titleBGM.pause();
                 titleBGM.currentTime = 0;
@@ -1112,12 +1116,19 @@
             itemDiv.innerHTML = "";
             let keys = player.inventory.filter(item => item === "key");
             let others = player.inventory.filter(item => item !== "key" && item !== "doc");
+
+            // カギアイテムを画像で表示（ここに記述）
             keys.forEach((item) => {
-                let span = document.createElement("span");
-                span.textContent = "カギ";
-                span.title = getItemDescription(item);
-                keyDiv.appendChild(span);
+                let img = document.createElement("img");
+                img.src = "key.png";         // カギ画像のパス（プロジェクト内の実際のパスに合わせてください）
+                img.alt = "カギ";            // 代替テキスト
+                img.title = getItemDescription(item);
+                img.style.width = "24px";    // 画像サイズに合わせる
+                img.style.height = "24px";   // 画像サイズに合わせる
+                img.style.margin = "2px";
+                keyDiv.appendChild(img);
             });
+
             others.forEach((item) => {
                 let span = document.createElement("span");
                 let text = "";
