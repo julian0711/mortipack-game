@@ -1088,6 +1088,8 @@
                 } else {
                     overlay.onclick = null;
                     overlay.style.display = "none";
+                    titleBGM.pause();
+                    titleBGM.currentTime = 0;
                     newGame();
                 }
             };
