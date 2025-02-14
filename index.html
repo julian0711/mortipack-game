@@ -210,8 +210,8 @@
             else if (item === "hallucinogen") return "探知機：敵の位置を10ターン表示します。";
             else if (item === "warpcoin") return "ワープコイン：ランダムにテレポートします。";
             else if (item === "map") return "マップ：未発見のマップを10マス開放します。";
-            else if (item === "talisman") return "タリスマン：使用すると、敵を1体消去します。";
-            else if (item === "doll") return "身代わり人形：取得率5%。敵に触れた際、死亡せずにその敵を5ターン動けなくします（一度使用）。";
+            else if (item === "talisman") return "タリスマン：使用すると、敵を3体消去します。";
+            else if (item === "doll") return "身代わり人形：敵に触れた際、死亡せずにその敵を5ターン動けなくします。";
             else return item;
         }
 
@@ -273,7 +273,7 @@
                 removeItemFromInventory("map");
             }
             else if (item === "talisman") {
-                message = "あたたかい光が・・・！";
+                message = "モーティパックの気配が消えた・・・！";
                 if (enemies.length > 0) {
                     enemies.splice(randomInt(0, enemies.length - 1), 1);
                 }
@@ -917,7 +917,7 @@
                             player.inventory.splice(dollIndex, 1);
                             updateInventoryUI();
                             enemy.freeze = 5;
-                            message = "身代わり人形が働いた！その敵は5ターン動けなくなった！";
+                            message = "身代わり人形が崩れ去った！触れた敵は5ターン動けなくなった！";
                         } else {
                             if (gameState !== "dying") {
                                 gameState = "dying";
@@ -935,6 +935,11 @@
         window.addEventListener("keydown", handleKeyDown);
 
         function moveEnemyTowards(enemy) {
+            // 敵が現在いるセルが未発見の場合は、移動処理を行わない
+            if (!dungeon.grid[enemy.x][enemy.y].discovered) {
+                return;
+            }
+
             if (ghostTimeTurnsRemaining > 0) {
                 let dx = Math.sign(player.x - enemy.x);
                 let dy = Math.sign(player.y - enemy.y);
@@ -1244,6 +1249,7 @@
                 else if (item === "warpcoin") text = "ワープコイン";
                 else if (item === "map") text = "マップ";
                 else if (item === "talisman") text = "タリスマン";
+                else if (item === "doll") text = "身代わり人形";
                 else text = item;
                 span.textContent = text;
                 span.title = getItemDescription(item);
