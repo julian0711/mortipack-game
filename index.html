@@ -867,6 +867,7 @@
                         if (gameMode === "story") {
                             // ストーリーモードの場合、B5（currentFloor==6）でゲームクリア、他は次階へ
                             if (currentFloor < 6) {
+                                currentFloor++;  // ここで階数をインクリメント
                                 gameState = "nextFloor";
                                 stageBGM.pause();
                                 stageBGM.currentTime = 0;
@@ -914,6 +915,7 @@
                         let dollIndex = player.inventory.indexOf("doll");
                         if (dollIndex !== -1) {
                             player.inventory.splice(dollIndex, 1);
+                            updateInventoryUI();
                             enemy.freeze = 5;
                             message = "身代わり人形が働いた！その敵は5ターン動けなくなった！";
                         } else {
@@ -1080,22 +1082,24 @@
             overlay.style.transition = "";
             let images = ["story1.png", "story2.png", "story3.png"];
             let index = 0;
-            overlay.innerHTML = "<img src='" + images[index] + "' alt='Story' style='width:100%; height:100%; object-fit:contain;'>";
-            overlay.onclick = function () {
+            // 画像要素にidを付与してクリックイベントを設定
+            overlay.innerHTML = "<img id='storyImg' src='" + images[index] + "' alt='Story' style='width:100%; height:100%; object-fit:contain;'>";
+            let storyImg = document.getElementById("storyImg");
+            storyImg.addEventListener("click", function handler() {
                 index++;
                 if (index < images.length) {
-                    overlay.innerHTML = "<img src='" + images[index] + "' alt='Story' style='width:100%; height:100%; object-fit:contain;'>";
+                    storyImg.src = images[index];
                 } else {
-                    overlay.onclick = null;
-                    overlay.style.display = "none";
+                    storyImg.removeEventListener("click", handler);
+                    // プロローグ終了時はタイトルBGMを停止してリセット
                     titleBGM.pause();
                     titleBGM.currentTime = 0;
+                    overlay.style.display = "none";
                     newGame();
                 }
-            };
+            });
         }
 
-        // ★ ストーリーエンディング：B5クリア後に2枚の画像を順に表示し、最終結果画面へ
         function showStoryEnding() {
             let overlay = document.getElementById("overlay");
             overlay.style.display = "flex";
@@ -1103,21 +1107,22 @@
             overlay.style.transition = "";
             let images = ["ending1.png", "ending2.png"];
             let index = 0;
-            overlay.innerHTML = "<img src='" + images[index] + "' alt='Ending' style='width:100%; height:100%; object-fit:contain;'>";
-            overlay.onclick = function () {
+            overlay.innerHTML = "<img id='endingImg' src='" + images[index] + "' alt='Ending' style='width:100%; height:100%; object-fit:contain;'>";
+            let endingImg = document.getElementById("endingImg");
+            endingImg.addEventListener("click", function handler() {
                 index++;
                 if (index < images.length) {
-                    overlay.innerHTML = "<img src='" + images[index] + "' alt='Ending' style='width:100%; height:100%; object-fit:contain;'>";
+                    endingImg.src = images[index];
                 } else {
-                    overlay.onclick = null;
-                    // 最終結果画面
+                    endingImg.removeEventListener("click", handler);
+                    // 最終結果画面：エンディング画像がすべて表示されたら結果表示
                     overlay.innerHTML = "<h1>Thank you for the playing!</h1><button id='backToTitle'>タイトルへ戻る</button>";
                     document.getElementById("backToTitle").addEventListener("click", function () {
                         overlay.style.display = "none";
                         showTitleScreen();
                     });
                 }
-            };
+            });
         }
 
         // ★ showLogoScreen() はそのまま
