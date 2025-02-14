@@ -75,7 +75,7 @@
                 background: #555;
                 color: #fff;
             }
-        /* オーバーレイ（タイトル画面やロゴ画面用） */
+        /* オーバーレイ（タイトル画面やロゴ、ストーリー用） */
         #overlay {
             position: absolute;
             top: 0;
@@ -84,9 +84,9 @@
             height: 100vh;
             background: rgba(0, 0, 0, 0.85);
             display: none;
-            flex-direction: column; /* 追加：子要素を縦並びに */
+            flex-direction: column; /* 子要素を縦並びに */
             align-items: center;
-            justify-content: center; /* 変更：中央揃え */
+            justify-content: center; /* 中央揃え */
             z-index: 10;
         }
 
@@ -127,8 +127,7 @@
                 <button id="investigateButton">Srch</button>
             </div>
         </div>
-
-        <!-- オーバーレイ（タイトル／ロゴ画面用） -->
+        <!-- オーバーレイ（タイトル／ロゴ、ストーリー用） -->
         <div id="overlay"></div>
     </div>
 
@@ -169,6 +168,9 @@
         let message = "";
         let lastFrameTime = 0;
 
+        // ★ ゲームモード（"endless" または "story"）を管理するグローバル変数
+        let gameMode = "endless";
+
         // サウンド読み込み
         let titleBGM = new Audio("titleBGM.mp3");
         titleBGM.loop = true;
@@ -200,13 +202,7 @@
         let packMateImage = new Image();
         packMateImage.src = "packmate.png";
 
-        // インベントリ操作用関数
-        function removeItemFromInventory(item) {
-            let index = player.inventory.indexOf(item);
-            if (index !== -1) {
-                player.inventory.splice(index, 1);
-            }
-        }
+        // アイテム説明に新アイテム「身代わり人形（doll）」を追加
         function getItemDescription(item) {
             if (item === "key") return "鍵：地下への扉を解除します。";
             else if (item === "radio") return "ラジカセ：敵の動きを10ターン停止させます。";
@@ -215,6 +211,7 @@
             else if (item === "warpcoin") return "ワープコイン：ランダムにテレポートします。";
             else if (item === "map") return "マップ：未発見のマップを10マス開放します。";
             else if (item === "talisman") return "タリスマン：使用すると、敵を1体消去します。";
+            else if (item === "doll") return "身代わり人形：取得率5%。敵に触れた際、死亡せずにその敵を5ターン動けなくします（一度使用）。";
             else return item;
         }
 
@@ -291,6 +288,13 @@
             drawGame();
         }
 
+        function removeItemFromInventory(item) {
+            let index = player.inventory.indexOf(item);
+            if (index !== -1) {
+                player.inventory.splice(index, 1);
+            }
+        }
+
         function getCluster(x, y, count) {
             let cluster = [];
             let queue = [{ x: x, y: y }];
@@ -329,12 +333,9 @@
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            let filterStr = "";
-            // ゲームシーンの描画が終わった後
             ctx.filter = "none"; // フィルターはリセット
-            // ここで、ゴーストタイム中なら半透明のオーバーレイを描画
+            // ゴーストタイム中は半透明オーバーレイ（例：青み）
             if (ghostTimeTurnsRemaining > 0) {
-                // 例として、青みがかった効果。色や透明度はお好みで調整してください。
                 ctx.fillStyle = "rgba(200, 200, 255, 0.2)";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
@@ -596,8 +597,11 @@
                         grid[pos.x][pos.y].shelf = true;
                         grid[pos.x][pos.y].shelfSearched = false;
                         shelfPositions.push({ x: pos.x, y: pos.y });
-                        if (Math.random() < 0.4) {
-                            if (Math.random() < 0.02) {
+                        // ここで、アイテム出現確率を設定（例：5%で身代わり人形 "doll"）
+                        if (Math.random() < 0.05) {
+                            grid[pos.x][pos.y].item = "doll";
+                        } else if (Math.random() < 0.5) {
+                            if (Math.random() < 0.03) {
                                 grid[pos.x][pos.y].item = "talisman";
                             } else {
                                 let possibleItems = !keyPlaced ?
@@ -713,6 +717,7 @@
             }
         }
 
+        // ★ ゲームモードに応じた新規ゲーム開始（ストーリーモードの場合はプロローグから）
         function newGame() {
             currentFloor = 1;
             score = 0;
@@ -723,6 +728,16 @@
         }
 
         function nextFloor() {
+            // ストーリーモードの場合、B5（currentFloor==6）でゲームクリア（エンディング）とする
+            if (gameMode === "story" && currentFloor === 6) {
+                gameState = "victory";
+                stageBGM.pause();
+                stageBGM.currentTime = 0;
+                drawGame();
+                showVictory();
+                return;
+            }
+
             if (gameState === "victory") {
                 currentFloor = (currentFloor === 1) ? 2 : currentFloor + 1;
             }
@@ -743,7 +758,8 @@
                 opacity: 1
             };
             enemies = [];
-            let numEnemies = randomInt(3, 5);
+            // 初期敵数：ストーリーモードでは少なめに設定
+            let numEnemies = (gameMode === "story") ? randomInt(2, 4) : randomInt(3, 5);
             for (let i = 0; i < numEnemies; i++) {
                 let enemyPos = randomFloorPosition(dungeon.grid);
                 while ((enemyPos.x === dungeon.start.x && enemyPos.y === dungeon.start.y) ||
@@ -796,7 +812,7 @@
                             message = "資料を手に入れた。これはすごい内容だ！（200ポイント）";
                         } else {
                             player.inventory.push(cell.item);
-                            if (["radio", "hallucinogen", "warpcoin", "map", "talisman"].includes(cell.item)) {
+                            if (["radio", "hallucinogen", "warpcoin", "map", "talisman", "doll"].includes(cell.item)) {
                                 score += 50;
                             } else if (cell.item === "key") {
                                 score += 15;
@@ -847,12 +863,33 @@
                         player.inventory.splice(keyIndex, 1);
                         score *= (currentFloor + 2);
                         goalMultiplierAnimation = { active: true, y: player.y * TILE_SIZE - 10, startTime: performance.now(), duration: 1000 };
-                        gameState = "victory";
-                        stageBGM.pause();
-                        stageBGM.currentTime = 0;
-                        drawGame();
-                        showVictory();
-                        return;
+                        // ★ ドア到達時の処理をモード別に変更
+                        if (gameMode === "story") {
+                            // ストーリーモードの場合、B5（currentFloor==6）でゲームクリア、他は次階へ
+                            if (currentFloor < 6) {
+                                gameState = "nextFloor";
+                                stageBGM.pause();
+                                stageBGM.currentTime = 0;
+                                drawGame();
+                                nextFloor();
+                                return;
+                            } else {
+                                gameState = "victory";
+                                stageBGM.pause();
+                                stageBGM.currentTime = 0;
+                                drawGame();
+                                showVictory();
+                                return;
+                            }
+                        } else {
+                            // エンドレスモードの場合は従来通り
+                            gameState = "victory";
+                            stageBGM.pause();
+                            stageBGM.currentTime = 0;
+                            drawGame();
+                            showVictory();
+                            return;
+                        }
                     } else {
                         message = "鍵が必要です。";
                     }
@@ -871,14 +908,22 @@
                         moveEnemyTowards(enemy);
                     }
                 }
+                // ★ プレイヤーと敵の衝突処理：もし身代わり人形（doll）を持っていれば消費し、接触した敵を5ターン停止
                 for (let enemy of enemies) {
                     if (enemy.x === player.x && enemy.y === player.y) {
-                        if (gameState !== "dying") {
-                            gameState = "dying";
-                            player.deathTimer = 0;
+                        let dollIndex = player.inventory.indexOf("doll");
+                        if (dollIndex !== -1) {
+                            player.inventory.splice(dollIndex, 1);
+                            enemy.freeze = 5;
+                            message = "身代わり人形が働いた！その敵は5ターン動けなくなった！";
+                        } else {
+                            if (gameState !== "dying") {
+                                gameState = "dying";
+                                player.deathTimer = 0;
+                            }
+                            drawGame();
+                            return;
                         }
-                        drawGame();
-                        return;
                     }
                 }
                 processTurn();
@@ -995,9 +1040,10 @@
             }
         }
 
+        // ★ タイトル画面：モード選択画面を表示
         function showTitleScreen() {
             gameState = "title";
-            // ★ stageBGM を停止してリセットする
+            // stageBGM を停止してリセット
             stageBGM.pause();
             stageBGM.currentTime = 0;
 
@@ -1005,26 +1051,79 @@
             overlay.style.display = "flex";
             overlay.style.opacity = "1";
             overlay.style.transition = "";
-            overlay.innerHTML = "<img src='title.png' alt='MORTIPACK' style='width:100%; max-height:70%; object-fit:contain;'><button id='startButton'>スタート</button>";
+            // モード選択：2つのボタンを表示
+            overlay.innerHTML = "<img src='title.png' alt='MORTIPACK' style='width:100%; max-height:70%; object-fit:contain;'>" +
+                "<div style='display: flex; flex-direction: column; align-items: center;'>" +
+                "<button id='endlessButton'>エンドレスモード</button>" +
+                "<button id='storyButton'>ストーリーモード</button></div>";
 
-            // タイトルBGMを再生
             titleBGM.currentTime = 0;
             titleBGM.play().catch(err => console.log(err));
 
-            document.getElementById("startButton").addEventListener("click", function () {
-                titleBGM.pause();
-                titleBGM.currentTime = 0;
+            document.getElementById("endlessButton").addEventListener("click", function () {
+                gameMode = "endless";
                 overlay.style.display = "none";
                 newGame();
             });
+            document.getElementById("storyButton").addEventListener("click", function () {
+                gameMode = "story";
+                overlay.style.display = "none";
+                showStoryIntro();
+            });
         }
 
+        // ★ プロローグ：ストーリーモード開始時に3枚の画像を順に表示
+        function showStoryIntro() {
+            let overlay = document.getElementById("overlay");
+            overlay.style.display = "flex";
+            overlay.style.opacity = "1";
+            overlay.style.transition = "";
+            let images = ["story1.png", "story2.png", "story3.png"];
+            let index = 0;
+            overlay.innerHTML = "<img src='" + images[index] + "' alt='Story' style='width:100%; height:100%; object-fit:contain;'>";
+            overlay.onclick = function () {
+                index++;
+                if (index < images.length) {
+                    overlay.innerHTML = "<img src='" + images[index] + "' alt='Story' style='width:100%; height:100%; object-fit:contain;'>";
+                } else {
+                    overlay.onclick = null;
+                    overlay.style.display = "none";
+                    newGame();
+                }
+            };
+        }
+
+        // ★ ストーリーエンディング：B5クリア後に2枚の画像を順に表示し、最終結果画面へ
+        function showStoryEnding() {
+            let overlay = document.getElementById("overlay");
+            overlay.style.display = "flex";
+            overlay.style.opacity = "1";
+            overlay.style.transition = "";
+            let images = ["ending1.png", "ending2.png"];
+            let index = 0;
+            overlay.innerHTML = "<img src='" + images[index] + "' alt='Ending' style='width:100%; height:100%; object-fit:contain;'>";
+            overlay.onclick = function () {
+                index++;
+                if (index < images.length) {
+                    overlay.innerHTML = "<img src='" + images[index] + "' alt='Ending' style='width:100%; height:100%; object-fit:contain;'>";
+                } else {
+                    overlay.onclick = null;
+                    // 最終結果画面
+                    overlay.innerHTML = "<h1>Thank you for the playing!</h1><button id='backToTitle'>タイトルへ戻る</button>";
+                    document.getElementById("backToTitle").addEventListener("click", function () {
+                        overlay.style.display = "none";
+                        showTitleScreen();
+                    });
+                }
+            };
+        }
+
+        // ★ showLogoScreen() はそのまま
         function showLogoScreen() {
             const overlay = document.getElementById("overlay");
             overlay.style.display = "flex";
             overlay.style.opacity = "1";
             overlay.style.transition = "opacity 1s";
-            // ロゴ画像は画面全体と同じサイズに合わせる（単体表示の場合は画像のみ）
             overlay.innerHTML = "<img src='logo.png' alt='Logo' style='width:100%; height:100%; object-fit:contain;'>";
             overlay.addEventListener("click", function handleLogoClick() {
                 overlay.removeEventListener("click", handleLogoClick);
@@ -1039,7 +1138,6 @@
         function showGameOver() {
             let overlay = document.getElementById("overlay");
             overlay.style.display = "flex";
-            // ボタン群を縦並びにするため、ラッパーdivで囲む
             overlay.innerHTML = "<h1>GAME OVER</h1><p>最終スコア: " + score + "</p><div style='display: flex; flex-direction: column; align-items: center;'>" +
                 "<button id='restartButton'>リスタート</button>" +
                 "<button id='giveUpButton'>あきらめる...</button></div>";
@@ -1053,16 +1151,18 @@
             });
         }
 
+        // ★ showVictory()：ストーリーモードの場合はエンディングを実行
         function showVictory() {
+            if (gameMode === "story") {
+                showStoryEnding();
+                return;
+            }
             let overlay = document.getElementById("overlay");
             overlay.style.display = "flex";
             overlay.innerHTML = "<h1>さらに地下へ！</h1><p>スコア: " + score + "</p><div style='display: flex; flex-direction: column; align-items: center;'>" +
                 "<button id='nextFloorButton'>次の階へ</button>" +
                 "<button id='giveUpButton'>タイトルへ</button></div>";
             goalMultiplierAnimation = { active: true, y: player.y * TILE_SIZE - 10, startTime: performance.now(), duration: 1000 };
-            // ↓ stageBGM はそのままループさせるので、以下の行を削除またはコメントアウト
-            // stageBGM.pause();
-            // stageBGM.currentTime = 0;
             document.getElementById("nextFloorButton").addEventListener("click", function () {
                 overlay.style.display = "none";
                 nextFloor();
@@ -1117,14 +1217,14 @@
             let keys = player.inventory.filter(item => item === "key");
             let others = player.inventory.filter(item => item !== "key" && item !== "doc");
 
-            // カギアイテムを画像で表示（ここに記述）
+            // カギアイテムを画像で表示
             keys.forEach((item) => {
                 let img = document.createElement("img");
-                img.src = "key.png";         // カギ画像のパス（プロジェクト内の実際のパスに合わせてください）
-                img.alt = "カギ";            // 代替テキスト
+                img.src = "key.png";         // カギ画像のパス
+                img.alt = "カギ";
                 img.title = getItemDescription(item);
-                img.style.width = "24px";    // 画像サイズに合わせる
-                img.style.height = "24px";   // 画像サイズに合わせる
+                img.style.width = "24px";
+                img.style.height = "24px";
                 img.style.margin = "2px";
                 keyDiv.appendChild(img);
             });
@@ -1147,15 +1247,12 @@
 
         // ここからモバイル操作用：各矢印ボタン押下時にキー入力イベントを発生
         document.addEventListener("DOMContentLoaded", function () {
-            // 矢印ボタンの処理
             document.querySelectorAll('.arrow').forEach(btn => {
                 btn.addEventListener('click', function () {
                     let direction = btn.getAttribute('data-direction');
                     handleKeyDown({ key: direction });
                 });
             });
-
-            // 「調べる」ボタンの処理
             document.getElementById('investigateButton').addEventListener('click', function () {
                 handleKeyDown({ key: 'e' });
             });
@@ -1165,12 +1262,11 @@
         window.onload = function () {
             canvas = document.getElementById("gameCanvas");
             ctx = canvas.getContext("2d");
-            let size = window.innerWidth;  // 端末の横幅を取得
+            let size = window.innerWidth;
             canvas.width = size;
             canvas.height = size;
             showLogoScreen();
         };
-
     </script>
 </body>
 </html>
