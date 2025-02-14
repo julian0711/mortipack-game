@@ -715,6 +715,12 @@
                     }
                 }
             }
+            for (let enemy of enemies) {
+                if (dungeon.grid[enemy.x][enemy.y].discovered && !enemy.hasAppeared) {
+                    enemy.hasAppeared = true;
+                    enemy.delay = 1;
+                }
+            }
         }
 
         // ★ ゲームモードに応じた新規ゲーム開始（ストーリーモードの場合はプロローグから）
@@ -774,8 +780,9 @@
                     animTime: 0,
                     isMoving: false,
                     freeze: 0,
-                    delay: 2,
-                    hallucinogenTurns: 0
+                    delay: 0,           // 初期 delay は 0（公開時に付与）
+                    hallucinogenTurns: 0,
+                    hasAppeared: false  // 新プロパティ：まだ公開されていない
                 });
             }
             gameState = "playing";
