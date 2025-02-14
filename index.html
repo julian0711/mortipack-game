@@ -1077,6 +1077,8 @@
             document.getElementById("endlessButton").addEventListener("click", function () {
                 gameMode = "endless";
                 overlay.style.display = "none";
+                titleBGM.pause();
+                titleBGM.currentTime = 0;
                 newGame();
             });
             document.getElementById("storyButton").addEventListener("click", function () {
