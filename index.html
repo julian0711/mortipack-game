@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8">
+    <title>MORTIPACK ～袋に注意！～ (Mobile Version)</title>
+    <!-- ビューポート設定 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <!-- ゲーム画面全体のコンテナ -->
+    <div id="gameContainer">
+        <!-- ゲームキャンバス -->
+        <canvas id="gameCanvas" width="320" height="320"></canvas>
+        <!-- インベントリ表示（カギ・アイテム） -->
+        <div id="inventoryPanel">
+            <div id="keyInventory"></div>
+            <div id="itemInventory"></div>
+        </div>
+
+        <!-- チャームインベントリ（左下） -->
+        <div id="charmContainer">
+            <div class="charm-label">CHARM</div>
+            <div id="charmInventory"></div>
+        </div>
+
+        <!-- 操作用のカーソルボタン -->
+        <div id="controls" style="display: none;">
+            <div class="arrow-row">
+                <button class="arrow" data-direction="ArrowUp"><img src="images/button_UP.png" alt="Up"></button>
+            </div>
+            <div class="arrow-row">
+                <button class="arrow" data-direction="ArrowLeft"><img src="images/button_left.png" alt="Left"></button>
+                <button class="arrow" data-direction="ArrowDown"><img src="images/button_down.png" alt="Down"></button>
+                <button class="arrow" data-direction="ArrowRight"><img src="images/button_right.png"
+                        alt="Right"></button>
+            </div>
+            <!-- 調べるボタンを追加 -->
+            <div class="action-row">
+                <button id="investigateButton"><img src="images/button_search.png" alt="Search"></button>
+            </div>
+        </div>
+        <!-- オーバーレイ（タイトル／ロゴ、ストーリー用） -->
+        <div id="overlay"></div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+
+</html>
