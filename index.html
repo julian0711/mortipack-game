@@ -44,6 +44,21 @@
         </div>
         <!-- オーバーレイ（タイトル／ロゴ、ストーリー用） -->
         <div id="overlay"></div>
+        <!-- タイトルに戻るボタン -->
+        <button id="returnTitleButton" style="display: none;">TITLE</button>
+
+        <!-- 確認モーダル -->
+        <div id="confirmModal"
+            style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 200; flex-direction: column; justify-content: center; align-items: center;">
+            <div
+                style="background: #333; padding: 20px; border: 2px solid white; border-radius: 5px; text-align: center;">
+                <p style="margin-bottom: 20px; font-size: 16px;">タイトルに戻りますか？</p>
+                <div style="display: flex; gap: 20px; justify-content: center;">
+                    <button id="confirmYes" style="color: cyan; font-size: 18px;">YES</button>
+                    <button id="confirmNo" style="color: white; font-size: 18px;">NO</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script type="module" src="js/main.js"></script>

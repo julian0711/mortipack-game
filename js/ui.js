@@ -12,6 +12,26 @@ export class UI {
         // Images
         this.images = {};
         this.loadImages();
+
+        // Return to Title Button
+        // Return to Title Button
+        // Return to Title Button
+        document.getElementById("returnTitleButton").addEventListener("click", (e) => {
+            e.stopPropagation();
+            document.getElementById("confirmModal").style.display = "flex";
+        });
+
+        // Modal Buttons
+        document.getElementById("confirmYes").addEventListener("click", (e) => {
+            e.stopPropagation();
+            document.getElementById("confirmModal").style.display = "none";
+            this.showTitleScreen();
+        });
+
+        document.getElementById("confirmNo").addEventListener("click", (e) => {
+            e.stopPropagation();
+            document.getElementById("confirmModal").style.display = "none";
+        });
     }
 
     loadImages() {
@@ -367,9 +387,9 @@ export class UI {
         if (charmDiv) charmDiv.innerHTML = "";
 
         // Charms
+        // Charms
         if (charmDiv && this.game.player && this.game.player.charms) {
-            this.game.player.charms.forEach(charmId => {
-                let charm = getCharmDetails(charmId);
+            this.game.player.charms.forEach(charm => {
                 if (charm) {
                     let img = document.createElement("img");
                     img.src = charm.image;
@@ -379,9 +399,10 @@ export class UI {
                     img.style.borderRadius = "4px";
                     img.style.backgroundColor = "rgba(0,0,0,0.5)";
                     img.style.cursor = "help";
-                    img.title = charm.name + "\n" + charm.description;
+                    let desc = charm.baseDescription + (charm.unit ? " (+" + charm.value + charm.unit + ")" : "");
+                    img.title = charm.name + "\n" + desc;
                     img.addEventListener("click", () => {
-                        this.game.message = charm.name + ": " + charm.description;
+                        this.game.message = charm.name + ": " + desc;
                         this.drawGame();
                     });
                     charmDiv.appendChild(img);
@@ -498,6 +519,7 @@ export class UI {
 
         let overlay = document.getElementById("overlay");
         overlay.style.display = "flex";
+        overlay.style.backgroundColor = "black";
         overlay.style.opacity = "1";
         overlay.style.transition = "";
         overlay.innerHTML = "<img src='images/title.png' alt='MORTIPACK' style='width:100%; max-height:50%; object-fit:contain; margin-bottom: 20px; image-rendering: pixelated;'>" +
@@ -507,7 +529,9 @@ export class UI {
             "<img id='optionButton' src='images/button_story option.png' alt='Option' style='width: 200px; cursor: pointer; image-rendering: pixelated;'></div>";
 
         // Hide controls on title screen
+        // Hide controls on title screen
         document.getElementById("controls").style.display = "none";
+        document.getElementById("returnTitleButton").style.display = "none";
 
         this.game.titleBGM.currentTime = 0;
         this.game.titleBGM.play().catch(err => console.log(err));
@@ -515,7 +539,9 @@ export class UI {
         document.getElementById("endlessButton").addEventListener("click", () => {
             this.game.gameMode = "endless";
             overlay.style.display = "none";
+            overlay.style.backgroundColor = "";
             document.getElementById("controls").style.display = "block"; // Show controls
+            document.getElementById("returnTitleButton").style.display = "block";
             document.getElementById("gameContainer").classList.add("playing"); // Show UI bg
             this.game.titleBGM.pause();
             this.game.titleBGM.currentTime = 0;
@@ -524,6 +550,7 @@ export class UI {
         document.getElementById("storyButton").addEventListener("click", () => {
             this.game.gameMode = "story";
             overlay.style.display = "none";
+            overlay.style.backgroundColor = "";
             // Controls will be shown after story intro
             this.showStoryIntro();
         });
@@ -550,6 +577,7 @@ export class UI {
                 this.game.titleBGM.currentTime = 0;
                 overlay.style.display = "none";
                 document.getElementById("controls").style.display = "block"; // Show controls
+                document.getElementById("returnTitleButton").style.display = "block";
                 document.getElementById("gameContainer").classList.add("playing"); // Show UI bg
                 this.game.newGame();
             }
@@ -563,6 +591,7 @@ export class UI {
         overlay.style.opacity = "1";
         overlay.style.transition = "";
         document.getElementById("controls").style.display = "none"; // Hide controls
+        document.getElementById("returnTitleButton").style.display = "none";
         document.getElementById("gameContainer").classList.remove("playing"); // Hide UI bg
         let images = ["images/ending1.png", "images/ending2.png"];
         let index = 0;
@@ -607,6 +636,7 @@ export class UI {
         let overlay = document.getElementById("overlay");
         overlay.style.display = "flex";
         document.getElementById("controls").style.display = "none"; // Hide controls
+        document.getElementById("returnTitleButton").style.display = "none";
         document.getElementById("gameContainer").classList.remove("playing"); // Hide UI bg
         overlay.innerHTML = "<h1>GAME OVER</h1><p>FINAL SCORE: " + this.game.score + "</p><div style='display: flex; flex-direction: column; align-items: flex-start;'>" +
             "<button id='restartButton'>RESTART</button>" +
@@ -614,6 +644,7 @@ export class UI {
         document.getElementById("restartButton").addEventListener("click", () => {
             overlay.style.display = "none";
             document.getElementById("controls").style.display = "block"; // Show controls
+            document.getElementById("returnTitleButton").style.display = "block";
             document.getElementById("gameContainer").classList.add("playing"); // Show UI bg
             this.game.newGame();
         });
@@ -623,6 +654,8 @@ export class UI {
         });
     }
 
+
+
     showVictory() {
         if (this.game.gameMode === "story") {
             this.showStoryEnding();
@@ -631,6 +664,7 @@ export class UI {
         let overlay = document.getElementById("overlay");
         overlay.style.display = "flex";
         document.getElementById("controls").style.display = "none"; // Hide controls
+        document.getElementById("returnTitleButton").style.display = "none";
         document.getElementById("gameContainer").classList.remove("playing"); // Hide UI bg
         overlay.innerHTML = "<h1>GO DEEPER!</h1><p>SCORE: " + this.game.score + "</p><div style='display: flex; flex-direction: column; align-items: flex-start;'>" +
             "<button id='nextFloorButton'>NEXT FLOOR</button>" +
@@ -639,6 +673,7 @@ export class UI {
         document.getElementById("nextFloorButton").addEventListener("click", () => {
             overlay.style.display = "none";
             document.getElementById("controls").style.display = "block"; // Show controls
+            document.getElementById("returnTitleButton").style.display = "block";
             document.getElementById("gameContainer").classList.add("playing"); // Show UI bg
             this.game.nextFloor();
         });
@@ -648,53 +683,96 @@ export class UI {
         });
     }
 
+
+
     showShopScreen() {
         let overlay = document.getElementById("overlay");
         overlay.style.display = "flex";
+        overlay.style.backgroundColor = "black";
         document.getElementById("controls").style.display = "none";
+        document.getElementById("returnTitleButton").style.display = "none";
         document.getElementById("gameContainer").classList.remove("playing");
 
         // Use persistent shop items from Game instance
         let shopCharms = this.game.shopItems || [];
+        let playerCharms = this.game.player.charms || [];
+        let isFull = playerCharms.length >= 4;
 
+        // Shop Items HTML
         let charmsHtml = shopCharms.map(charm => {
-            // Check if player already has this charm
-            let playerCharms = this.game.player.charms || [];
-            let hasCharm = playerCharms.includes(charm.id);
-            let opacity = hasCharm ? "0.5" : "1";
-            return `<div class="shop-item" data-id="${charm.id}" style="margin: 5px; cursor: pointer; opacity: ${opacity}; text-align: center; position: relative;">
+            if (charm.sold) {
+                // Sold Out: Black silhouette, unclickable
+                return `<div class="shop-item sold" style="margin: 5px; cursor: default; text-align: center; position: relative;">
+                    <img src="${charm.image}" style="width: 64px; height: 64px; image-rendering: pixelated; border: 2px solid #333; background: black; filter: brightness(0);">
+                    <div style="font-size: 14px; color: white; font-weight: bold; margin-top: 2px; text-shadow: 1px 1px 0 #000;">SOLD OUT</div>
+                </div>`;
+            }
+
+            // Available but maybe full inventory
+            let opacity = isFull ? "0.5" : "1";
+            let cursor = isFull ? "not-allowed" : "pointer";
+            return `<div class="shop-item" data-id="${charm.id}" style="margin: 5px; cursor: ${cursor}; opacity: ${opacity}; text-align: center; position: relative;">
                 <img src="${charm.image}" style="width: 64px; height: 64px; image-rendering: pixelated; border: 2px solid white; background: rgba(0,0,0,0.5);">
                 <div style="font-size: 10px; color: white; margin-top: 2px;">${charm.name}</div>
             </div>`;
         }).join("");
 
+        // Player Inventory HTML (for discard)
+        let inventoryHtml = playerCharms.map((charm, index) => {
+            let desc = charm.baseDescription + (charm.unit ? " (+" + charm.value + charm.unit + ")" : "");
+            return `<div class="player-charm-item" data-index="${index}" style="margin: 2px; cursor: pointer; text-align: center; position: relative;">
+                <img src="${charm.image}" style="width: 32px; height: 32px; image-rendering: pixelated; border: 1px solid cyan; background: rgba(0,0,0,0.5);">
+                <div style="font-size: 10px; color: cyan; margin-top: 2px; display:none;">${charm.name}</div>
+            </div>`;
+        }).join("");
+
+        let shopkeeperMessage = isFull
+            ? "おや、チャームを長押しで捨てないと新たなチャームは持てないみたいだ。"
+            : "よく来たね。長押しで入手できるよ。";
+
         overlay.innerHTML = "<div style='position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;'>" +
             "<img src='images/ショップ画面.png' style='position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; z-index: -1; image-rendering: pixelated;'>" +
             "<h1 style='margin-top: 20px; text-shadow: 2px 2px 0 #000;'>SHOP</h1>" +
-            "<div style='background: rgba(0, 0, 0, 0.7); padding: 10px; border-radius: 5px; margin-top: 10px; text-align: center;'>" +
-            "<p style='margin: 5px 0;'>よく来たね。</p>" +
-            "<p style='margin: 5px 0;'>長押しで入手できるよ。</p>" +
+            "<div style='background: rgba(0, 0, 0, 0.7); padding: 10px; border-radius: 5px; margin-top: 10px; text-align: center; width: 80%;'>" +
+            `<p style='margin: 5px 0;'>${shopkeeperMessage}</p>` +
             "</div>" +
-            // Updated shopMessage position: absolute, under the character's right hand (screen left), white text
+            // Shop Message (Description)
             "<div id='shopMessage' style='position: absolute; top: 650px; left: 20px; width: auto; white-space: nowrap; color: white; font-size: 16px; text-align: left; text-shadow: 1px 1px 0 #000; pointer-events: none;'></div>" +
             "<div style='flex-grow: 1;'></div>" +
-            "<div id='shopItems' style='display:flex; flex-direction:row; align-items:flex-end; justify-content:center; margin-bottom: 20px; width: 100%; gap: 10px;'>" +
+
+            // Shop Items Area
+            "<div id='shopItems' style='display:flex; flex-direction:row; align-items:flex-end; justify-content:center; margin-bottom: 120px; width: 100%; gap: 10px;'>" +
             charmsHtml +
             "</div>" +
-            "<div style='display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 50px;'>" +
+
+            // Player Inventory Area - Moved to Bottom Left, smaller, no bg
+            "<div style='position: absolute; bottom: 20px; left: 20px; display: flex; flex-direction: column; align-items: flex-start;'>" +
+            "<div style='color: white; font-size: 12px; margin-bottom: 5px; text-shadow: 1px 1px 0 #000;'>所持チャーム (長押しで破棄)</div>" +
+            "<div id='playerCharms' style='display:flex; flex-direction:row; justify-content:flex-start; gap: 5px;'>" +
+            inventoryHtml +
+            "</div>" +
+            "</div>" +
+
+            "<div style='display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 20px; margin-top: 10px; position: absolute; bottom: 20px; right: 20px;'>" +
             "<button id='shopNextFloorButton'>NEXT FLOOR</button>" +
             "</div></div>";
 
         document.getElementById("shopNextFloorButton").addEventListener("click", () => {
             overlay.style.display = "none";
+            overlay.style.backgroundColor = "";
             document.getElementById("controls").style.display = "block";
+            document.getElementById("returnTitleButton").style.display = "block";
             document.getElementById("gameContainer").classList.add("playing");
             this.game.nextFloor();
         });
 
+        // Shop Item Events (Buy)
         document.querySelectorAll(".shop-item").forEach(el => {
+            if (el.classList.contains("sold")) return; // Ignore sold items
+            if (isFull) return; // Disable interaction if full
+
             let charmId = el.getAttribute("data-id");
-            let charm = getCharmDetails(charmId);
+            let charm = this.game.shopItems.find(c => c.id === charmId);
             let pressTimer = null;
             let isLongPress = false;
 
@@ -713,8 +791,9 @@ export class UI {
                     pressTimer = null;
                 }
                 if (!isLongPress) {
-                    // Short press: Show info
-                    document.getElementById("shopMessage").textContent = charm.name + ": " + charm.description;
+                    let desc = charm.baseDescription + (charm.unit ? " (+" + charm.value + charm.unit + ")" : "");
+                    document.getElementById("shopMessage").textContent = charm.name + ": " + desc;
+                    document.getElementById("shopMessage").style.color = "white";
                 }
             };
 
@@ -723,82 +802,76 @@ export class UI {
             el.addEventListener("mouseup", endPress);
             el.addEventListener("touchend", endPress);
             el.addEventListener("mouseleave", () => {
+                if (pressTimer) clearTimeout(pressTimer);
+            });
+        });
+
+        // Player Charm Events (Discard)
+        document.querySelectorAll(".player-charm-item").forEach(el => {
+            let index = parseInt(el.getAttribute("data-index"));
+            let charm = playerCharms[index];
+            let pressTimer = null;
+            let isLongPress = false;
+
+            const startPress = (e) => {
+                // Only prevent default on touch to prevent scrolling, allow mouse to behave normally
+                if (e.type === 'touchstart') e.preventDefault();
+
+                isLongPress = false;
+                pressTimer = setTimeout(() => {
+                    isLongPress = true;
+                    // Discard Logic
+                    if (window.confirm(charm.name + " を破棄しますか？")) {
+                        this.game.player.charms.splice(index, 1);
+                        this.updateInventoryUI();
+                        this.showShopScreen(); // Refresh UI
+                    }
+                }, 500);
+            };
+
+            const endPress = (e) => {
                 if (pressTimer) {
                     clearTimeout(pressTimer);
                     pressTimer = null;
                 }
+                if (!isLongPress) {
+                    let desc = charm.baseDescription + (charm.unit ? " (+" + charm.value + charm.unit + ")" : "");
+                    document.getElementById("shopMessage").textContent = "所持中: " + charm.name + ": " + desc;
+                    document.getElementById("shopMessage").style.color = "cyan";
+                }
+            };
+
+            el.addEventListener("mousedown", startPress);
+            el.addEventListener("touchstart", startPress);
+            el.addEventListener("mouseup", endPress);
+            el.addEventListener("touchend", endPress);
+            el.addEventListener("mouseleave", () => {
+                if (pressTimer) clearTimeout(pressTimer);
             });
         });
     }
 
     buyCharm(charmId) {
-        let charm = getCharmDetails(charmId);
+        let charm = this.game.shopItems.find(c => c.id === charmId);
+        if (!charm || charm.sold) return;
+
         let playerCharms = this.game.player.charms || [];
-        if (playerCharms.includes(charmId)) {
-            alert("既に持っています。");
+
+        // Check full inventory
+        if (playerCharms.length >= 4) {
+            alert("チャームがいっぱいです。不要なチャームを長押しして破棄してください。");
             return;
         }
 
-        if (playerCharms.length < 4) {
-            this.game.player.charms = playerCharms;
-            this.game.player.charms.push(charmId);
-            this.updateInventoryUI();
-            alert(charm.name + " を装備しました。");
-            this.showShopScreen();
-        } else {
-            this.showCharmDiscardModal(charmId);
-        }
-    }
+        // Allow duplicates, so just push
+        this.game.player.charms = playerCharms;
+        this.game.player.charms.push(charm);
 
-    showCharmDiscardModal(newCharmId) {
-        let overlay = document.getElementById("overlay");
-        let playerCharms = this.game.player.charms || [];
-        let currentCharms = playerCharms.map(id => getCharmDetails(id));
-        let newCharm = getCharmDetails(newCharmId);
+        // Mark as sold
+        charm.sold = true;
 
-        let listHtml = currentCharms.map(c => {
-            return `<div class="discard-item" data-id="${c.id}" style="background:rgba(0,0,0,0.8); border:1px solid white; padding:10px; margin:5px; cursor:pointer; width: 250px; text-align:left; display:flex; align-items:center;">
-                <img src="${c.image}" style="width:32px; height:32px; margin-right:10px;">
-                <div>
-                    <div style="color:cyan; font-weight:bold;">${c.name}</div>
-                    <div style="font-size:12px; color:white;">${c.description}</div>
-                </div>
-            </div>`;
-        }).join("");
-
-        listHtml += `<div class="discard-item" data-id="${newCharm.id}" style="background:rgba(0,0,0,0.8); border:2px solid yellow; padding:10px; margin:5px; cursor:pointer; width: 250px; text-align:left; display:flex; align-items:center;">
-                <img src="${newCharm.image}" style="width:32px; height:32px; margin-right:10px;">
-                <div>
-                    <div style="color:yellow; font-weight:bold;">(新) ${newCharm.name}</div>
-                    <div style="font-size:12px; color:white;">${newCharm.description}</div>
-                    <div style="font-size:10px; color:red; text-align:right;">これを破棄（購入キャンセル）</div>
-                </div>
-            </div>`;
-
-        overlay.innerHTML = "<div style='display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; background:rgba(0,0,0,0.9); color:white; width:100%;'>" +
-            "<h2>チャームがいっぱいです</h2>" +
-            "<p>一つ選んで破棄してください。</p>" +
-            "<div style='display:flex; flex-direction:column; overflow-y:auto; max-height:60%; width:100%; align-items:center;'>" +
-            listHtml +
-            "</div>" +
-            "</div>";
-
-        document.querySelectorAll(".discard-item").forEach(el => {
-            el.addEventListener("click", () => {
-                let discardId = el.getAttribute("data-id");
-                if (discardId === newCharmId) {
-                    alert("購入をキャンセルしました。");
-                } else {
-                    let idx = this.game.player.charms.indexOf(discardId);
-                    if (idx !== -1) {
-                        this.game.player.charms.splice(idx, 1);
-                        this.game.player.charms.push(newCharmId);
-                        this.updateInventoryUI();
-                        alert(getCharmDetails(discardId).name + " を破棄し、" + newCharm.name + " を装備しました。");
-                    }
-                }
-                this.showShopScreen();
-            });
-        });
+        this.updateInventoryUI();
+        alert(charm.name + " を装備しました。");
+        this.showShopScreen();
     }
 }

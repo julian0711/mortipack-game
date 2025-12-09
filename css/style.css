@@ -201,3 +201,26 @@ button:active img {
 #overlay button:hover {
     color: yellow;
 }
+
+#returnTitleButton {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    z-index: 100;
+    /* Increased z-index */
+    background: none;
+    border: none;
+    color: white;
+    /* Changed to white */
+    font-family: 'PixelMplus10', sans-serif;
+    font-size: 18px;
+    /* Increased font size */
+    cursor: pointer;
+    text-shadow: 2px 2px 0 #000;
+    /* Stronger shadow */
+    pointer-events: auto;
+}
+
+#returnTitleButton:hover {
+    color: white;
+}

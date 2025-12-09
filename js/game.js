@@ -113,7 +113,10 @@ export class Game {
         for (let i = 0; i < 3; i++) {
             if (availableCharms.length === 0) break;
             let idx = Math.floor(Math.random() * availableCharms.length);
-            this.shopItems.push(availableCharms[idx]);
+            let charm = availableCharms[idx];
+            // Generate random value for the charm
+            let val = randomInt(charm.minVal, charm.maxVal);
+            this.shopItems.push({ ...charm, value: val });
             availableCharms.splice(idx, 1);
         }
         // Preserve inventory if already exists (developer mode case)
@@ -244,8 +247,28 @@ export class Game {
                     else if (item === "map") { useItem("map", this); }
                     else { this.player.inventory.push(item); if (["radio", "hallucinogen", "warpcoin", "talisman", "doll", "bluebox", "warp_gun"].includes(item)) this.score += 50; else if (item === "key") this.score += 15; this.message = "アイテム入手: " + getItemDescription(item); }
                 } else {
-                    this.message = "棚は空っぽでした。";
-                    this.searchSE.currentTime = 0; this.searchSE.play().catch(err => console.log(err));
+                    // Check for Charm A (Drop Rate Up)
+                    let charmA = this.player.charms ? this.player.charms.find(c => c.id === "charm_A") : null;
+                    let extraItemFound = false;
+                    if (charmA) {
+                        let roll = randomInt(1, 100);
+                        if (roll <= charmA.value) {
+                            // Extra item found!
+                            const extraItems = ["hallucinogen", "warpcoin", "doll", "bluebox", "warp_gun"];
+                            const item = extraItems[randomInt(0, extraItems.length - 1)];
+                            this.player.inventory.push(item);
+                            this.score += 50;
+                            this.message = "チャームの効果でアイテムを発見！: " + getItemDescription(item);
+                            this.itemPickupAnimation = { active: true, item, x: this.player.x, y: this.player.y, startTime: performance.now(), duration: 500 };
+                            this.getSE.currentTime = 0; this.getSE.play().catch(err => console.log(err));
+                            extraItemFound = true;
+                        }
+                    }
+
+                    if (!extraItemFound) {
+                        this.message = "棚は空っぽでした。";
+                        this.searchSE.currentTime = 0; this.searchSE.play().catch(err => console.log(err));
+                    }
                 }
                 validTurn = true;
                 this.ui.updateInventoryUI();
