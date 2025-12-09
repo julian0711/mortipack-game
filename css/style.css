@@ -21,37 +21,54 @@ body {
 
 #gameContainer {
     position: relative;
-    width: 100%;
+    /* Maintain 9:16 aspect ratio */
+    aspect-ratio: 9 / 16;
     height: 100%;
-    max-width: 600px;
+    width: auto;
+    max-width: 100%;
+    /* Center it */
+    margin: 0 auto;
+
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
     padding-top: 0;
-    padding-bottom: 10px;
+    padding-bottom: 0;
     box-sizing: border-box;
+    /* Box shadow for "Test Preview" look on desktop */
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    background-color: #222;
+    /* Fallback */
 }
 
 #gameContainer.playing {
     background-image: url('../images/ui.png');
     background-size: 100% 100%;
+    /* Now that container is fixed ratio, this won't stretch weirdly */
     background-repeat: no-repeat;
     background-position: center;
 }
 
 canvas {
     image-rendering: pixelated;
-    width: 100%;
+    width: 90%;
+    /* Slight margin for monitor frame */
     height: auto;
-    max-height: 65vh;
     aspect-ratio: 1 / 1;
     object-fit: contain;
     background-color: #000;
-    flex-shrink: 1;
+    flex-shrink: 0;
+    margin-top: 10%;
+    /* Push down for top bezel */
+    box-shadow: 0 0 10px #000;
 }
 
 #inventoryPanel {
+    position: absolute;
+    top: 55%;
+    /* Position below canvas */
+    left: 0;
     width: 100%;
     padding: 0 15px;
     box-sizing: border-box;
@@ -59,8 +76,7 @@ canvas {
     flex-direction: row;
     gap: 10px;
     min-height: 70px;
-    flex-shrink: 0;
-    margin-top: 5px;
+    z-index: 5;
 }
 
 #keyInventory {
@@ -68,10 +84,8 @@ canvas {
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    padding-top: 35px;
-    /* Moved down */
+    padding-top: 10px;
     padding-left: 2px;
-    /* Slight adjustment */
 }
 
 #itemInventory {
@@ -80,27 +94,23 @@ canvas {
     flex-wrap: wrap;
     align-items: flex-start;
     justify-content: flex-end;
-    /* Right align items */
-    padding-top: 35px;
-    /* Moved down */
+    padding-top: 10px;
     padding-right: 25px;
-    /* Increased right padding */
 }
 
 #charmContainer {
     position: absolute;
-    bottom: 10px;
-    left: 10px;
+    bottom: 2%;
+    left: 2%;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     z-index: 5;
     pointer-events: none;
-    /* Let clicks pass through if empty */
 }
 
 .charm-label {
-    font-size: 12px;
+    font-size: 10px;
     color: cyan;
     margin-bottom: 2px;
     text-shadow: 1px 1px 0 #000;
@@ -113,6 +123,8 @@ canvas {
 }
 
 #controls {
+    position: absolute;
+    bottom: 5%;
     width: 100%;
     padding: 5px 10px;
     box-sizing: border-box;
@@ -120,21 +132,21 @@ canvas {
     flex-direction: column;
     align-items: center;
     gap: 5px;
-    margin-top: auto;
-    margin-bottom: 30px;
-    flex-shrink: 0;
+    z-index: 5;
 }
 
 .arrow-row {
     display: flex;
     justify-content: center;
-    gap: 10px;
+    gap: 15px;
 }
 
 .action-row {
+    position: absolute;
+    right: 10%;
+    bottom: 20px;
     display: flex;
     justify-content: center;
-    margin-top: 5px;
 }
 
 button {
@@ -146,8 +158,8 @@ button {
 }
 
 button img {
-    width: 60px;
-    height: 60px;
+    width: 80px;
+    height: 80px;
     image-rendering: pixelated;
     display: block;
 }

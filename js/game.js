@@ -17,8 +17,10 @@ export class Game {
         // Canvas setup
         this.canvas = document.getElementById("gameCanvas");
         this.ctx = this.canvas.getContext("2d");
-        this.canvas.width = TILE_SIZE * currentGridWidth;
-        this.canvas.height = TILE_SIZE * currentGridHeight;
+        // VIEWPORT SIZE: Show only a part of the map (13x13 tiles) to zoom in
+        const VIEWPORT_TILES = 13;
+        this.canvas.width = TILE_SIZE * VIEWPORT_TILES;
+        this.canvas.height = TILE_SIZE * VIEWPORT_TILES;
         // UI and dungeon
         this.ui = new UI(this.canvas, this.ctx, this);
         this.dungeon = new Dungeon();
