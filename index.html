@@ -34,23 +34,28 @@
 
         <!-- 操作用のカーソルボタン -->
         <div id="controls" style="display: none;">
-            <div class="arrow-row">
-                <button class="arrow" data-direction="ArrowUp"><img src="images/button_UP.png" alt="Up"></button>
+            <!-- 十字キー画像とタッチ領域 -->
+            <div id="dpad-container">
+                <img src="images/button_control.png" alt="D-pad" id="dpad-image">
+                <div class="dpad-touch-zone" data-direction="ArrowUp"
+                    style="top: 0; left: 33%; width: 34%; height: 33%;"></div>
+                <div class="dpad-touch-zone" data-direction="ArrowDown"
+                    style="bottom: 0; left: 33%; width: 34%; height: 33%;"></div>
+                <div class="dpad-touch-zone" data-direction="ArrowLeft"
+                    style="top: 33%; left: 0; width: 33%; height: 34%;"></div>
+                <div class="dpad-touch-zone" data-direction="ArrowRight"
+                    style="top: 33%; right: 0; width: 33%; height: 34%;"></div>
             </div>
-            <div class="arrow-row">
-                <button class="arrow" data-direction="ArrowLeft"><img src="images/button_left.png" alt="Left"></button>
-                <button class="arrow" data-direction="ArrowDown"><img src="images/button_down.png" alt="Down"></button>
-                <button class="arrow" data-direction="ArrowRight"><img src="images/button_right.png"
-                        alt="Right"></button>
-            </div>
-            <!-- 調べるボタンを追加 -->
-            <div class="action-row">
+
+            <!-- 右側のボタン群 -->
+            <div class="right-buttons">
                 <button id="investigateButton"><img src="images/button_search.png" alt="Search"></button>
+                <button id="optionButton"><img src="images/button_option.png" alt="Option"></button>
             </div>
         </div>
         <!-- オーバーレイ（タイトル／ロゴ、ストーリー用） -->
         <div id="overlay"></div>
-        <!-- タイトルに戻るボタン -->
+        <!-- タイトルに戻るボタン（コードは残すが非表示） -->
         <button id="returnTitleButton" style="display: none;">TITLE</button>
 
         <!-- 確認モーダル -->
