@@ -38,8 +38,8 @@ body {
     box-sizing: border-box;
     /* Box shadow for "Test Preview" look on desktop */
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-    background-color: #222;
     /* Fallback */
+    background-color: #000;
 }
 
 #gameContainer.playing {
@@ -143,8 +143,10 @@ canvas {
 
 .action-row {
     position: absolute;
-    right: 10%;
-    bottom: 20px;
+    right: 5%;
+    /* Moved further right to avoid overlap */
+    bottom: 110px;
+    /* Moved up to be separate from arrows */
     display: flex;
     justify-content: center;
 }
