@@ -43,11 +43,8 @@ body {
 }
 
 #gameContainer.playing {
-    background-image: url('../images/ui.png');
-    background-size: 100% 100%;
-    /* Now that container is fixed ratio, this won't stretch weirdly */
-    background-repeat: no-repeat;
-    background-position: center;
+    /* Background image removed */
+    background-color: #000;
 }
 
 canvas {
@@ -74,28 +71,68 @@ canvas {
     box-sizing: border-box;
     display: flex;
     flex-direction: row;
-    gap: 10px;
-    min-height: 70px;
+    gap: 15px;
+    min-height: 80px;
     z-index: 5;
+    pointer-events: none;
+    /* Container click-through */
+    justify-content: space-between;
+}
+
+.inventory-group {
+    position: relative;
+    border: 2px solid white;
+    border-radius: 4px;
+    padding: 10px 5px;
+    background: rgba(0, 0, 0, 0.5);
+    pointer-events: auto;
+    /* Enable clicks inside */
+}
+
+/* Specific styling for groups */
+.inventory-group:nth-child(1) {
+    /* KEY group */
+    width: 70px;
+    display: flex;
+    justify-content: center;
+}
+
+.inventory-group:nth-child(2) {
+    /* ITEM group */
+    flex: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+}
+
+.ui-label {
+    position: absolute;
+    top: -10px;
+    left: 10px;
+    background-color: #000;
+    /* Mask border */
+    padding: 0 5px;
+    font-size: 10px;
+    color: white;
+    font-family: 'PixelMplus10', sans-serif;
+    line-height: 1;
 }
 
 #keyInventory {
-    width: 60px;
+    width: 100%;
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    padding-top: 10px;
-    padding-left: 2px;
+    flex-wrap: wrap;
 }
 
 #itemInventory {
-    flex: 1;
+    width: 100%;
     display: flex;
     flex-wrap: wrap;
     align-items: flex-start;
     justify-content: flex-end;
-    padding-top: 10px;
-    padding-right: 25px;
+    gap: 2px;
 }
 
 #charmContainer {
@@ -106,14 +143,28 @@ canvas {
     flex-direction: column;
     align-items: flex-start;
     z-index: 5;
-    pointer-events: none;
+    pointer-events: auto;
+    /* Changed to auto to allow clicks */
+
+    border: 2px solid white;
+    border-radius: 4px;
+    padding: 5px;
+    background: rgba(0, 0, 0, 0.5);
+    padding-top: 10px;
+    /* Space for label */
 }
 
 .charm-label {
+    position: absolute;
+    top: -8px;
+    left: 5px;
+    background-color: #000;
+    padding: 0 5px;
+
     font-size: 10px;
-    color: cyan;
-    margin-bottom: 2px;
-    text-shadow: 1px 1px 0 #000;
+    color: white;
+    margin-bottom: 0;
+    text-shadow: none;
 }
 
 #charmInventory {
@@ -124,7 +175,7 @@ canvas {
 
 #controls {
     position: absolute;
-    bottom: 5%;
+    bottom: 20%;
     width: 100%;
     padding: 5px 10px;
     box-sizing: border-box;
@@ -160,8 +211,8 @@ button {
 }
 
 button img {
-    width: 80px;
-    height: 80px;
+    width: 70px;
+    height: 70px;
     image-rendering: pixelated;
     display: block;
 }

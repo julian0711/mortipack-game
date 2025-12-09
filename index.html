@@ -16,8 +16,14 @@
         <canvas id="gameCanvas" width="320" height="320"></canvas>
         <!-- インベントリ表示（カギ・アイテム） -->
         <div id="inventoryPanel">
-            <div id="keyInventory"></div>
-            <div id="itemInventory"></div>
+            <div class="inventory-group">
+                <div class="ui-label">KEY</div>
+                <div id="keyInventory"></div>
+            </div>
+            <div class="inventory-group" style="flex: 1;">
+                <div class="ui-label">ITEM</div>
+                <div id="itemInventory"></div>
+            </div>
         </div>
 
         <!-- チャームインベントリ（左下） -->
